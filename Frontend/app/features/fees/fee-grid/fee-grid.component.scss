@@ -1,0 +1,179 @@
+.toolbar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+}
+
+.text-input {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 14px;
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.grid-scroll {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 8px;
+}
+
+.fee-grid-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+
+  th, td { padding: 8px 10px; text-align: center; white-space: nowrap; }
+
+  th {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .student-col {
+    text-align: left;
+    color: var(--text-primary);
+    font-weight: 500;
+    position: sticky;
+    left: 0;
+    background: var(--surface);
+  }
+
+  .outstanding-col { text-align: right; color: var(--text-secondary); }
+
+  tbody tr:hover { background: var(--surface-accent); }
+}
+
+.status-cell {
+  width: 28px;
+  height: 20px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s ease;
+
+  &:hover { transform: scale(1.15); }
+
+  &.status-paid { background: var(--status-paid); }
+  &.status-partial { background: var(--status-partial); }
+  &.status-overdue { background: var(--status-overdue); }
+  &.status-unpaid { background: var(--status-unpaid); }
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--text-secondary);
+
+  .dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    margin-right: 5px;
+
+    &.status-paid { background: var(--status-paid); }
+    &.status-partial { background: var(--status-partial); }
+    &.status-overdue { background: var(--status-overdue); }
+    &.status-unpaid { background: var(--status-unpaid); }
+  }
+}
+
+.student-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 240px;
+}
+
+.student-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 105px;
+  gap: 2px;
+}
+
+.student-name { font-weight: 600; color: var(--text-primary); }
+.admission-label { font-size: 10px; color: var(--text-secondary); font-weight: 400; }
+
+.concession-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  color: var(--accent);
+  border-radius: 7px;
+  padding: 6px 9px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .15s ease, transform .1s ease;
+}
+
+.concession-btn:hover {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  transform: translateY(-1px);
+}
+
+.concession-icon { font-size: 12px; line-height: 1; }
+
+.month-cell.not-applicable { background: transparent; }
+.month-cell.not-applicable::after { content: ''; display: block; width: 28px; height: 20px; margin: 0 auto; }
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.concession-dialog {
+  width: min(470px, calc(100vw - 32px));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.18);
+  overflow: hidden;
+}
+
+.concession-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 18px 20px; border-bottom: 1px solid var(--border);
+}
+.concession-header h2 { margin: 0 0 4px; font-size: 17px; color: var(--text-primary); }
+.concession-header p { margin: 0; font-size: 12px; color: var(--text-secondary); }
+.close-btn { background: none; border: 0; font-size: 24px; color: var(--text-secondary); cursor: pointer; line-height: 1; }
+.concession-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.concession-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.concession-meta div { display: flex; flex-direction: column; gap: 4px; }
+.concession-meta span, .concession-field label { font-size: 12px; color: var(--text-secondary); }
+.concession-meta strong { color: var(--text-primary); font-size: 14px; }
+.concession-field { display: flex; flex-direction: column; gap: 7px; }
+.concession-preview { display: flex; justify-content: space-between; align-items: center; padding: 11px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-accent); color: var(--text-secondary); font-size: 13px; }
+.concession-preview strong { color: var(--text-primary); }
+.concession-error { padding: 9px 10px; border-radius: 7px; background: rgba(180,30,30,.08); color: #b51f1f; font-size: 12px; }
+.concession-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--border); }
+.btn-secondary { border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); border-radius: var(--radius); padding: 9px 15px; cursor: pointer; }
+.btn-primary { border: 0; background: var(--accent); color: white; border-radius: var(--radius); padding: 9px 16px; font-weight: 600; cursor: pointer; }
+.btn-primary:disabled { opacity: .6; cursor: not-allowed; }

@@ -1,0 +1,10 @@
+.expired-page { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: var(--bg-page); box-sizing: border-box; }
+.expired-card { width: min(480px, 100%); padding: 34px; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: calc(var(--radius) * 1.5); }
+.expired-card img { width: 64px; height: 64px; object-fit: contain; margin-bottom: 10px; }
+h1 { margin: 0 0 12px; color: var(--text-primary); }
+p { color: var(--text-secondary); line-height: 1.5; }
+label { display: block; text-align: left; margin: 20px 0 6px; font-size: 13px; font-weight: 600; color: var(--text-primary); }
+input { width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface); color: var(--text-primary); }
+button { margin-top: 12px; width: 100%; padding: 11px 16px; border: 0; border-radius: var(--radius); background: var(--accent); color: #fff; font-weight: 700; cursor: pointer; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+.error { margin-top: 14px; color: #b42318; font-weight: 600; }

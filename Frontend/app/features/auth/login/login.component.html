@@ -1,0 +1,30 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+     <div class="auth-logo"><ng-icon name="tablerSchool" /></div>
+      <h1>Bright Grammar School</h1>
+      <p>Sign in to the portal</p>
+    </div>
+
+    <form (ngSubmit)="submit()">
+      <label>
+        Username
+        <input type="text" [(ngModel)]="username" name="username" autocomplete="username" />
+      </label>
+      <label>
+        Password
+        <input type="password" [(ngModel)]="password" name="password" autocomplete="current-password" />
+      </label>
+
+      @if (errorMessage()) {
+        <p class="error">{{ errorMessage() }}</p>
+      }
+
+      <button type="submit" [disabled]="loading()">
+        {{ loading() ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </form>
+
+    <p class="auth-switch">Don't have an account? <a routerLink="/register">Sign up</a></p>
+  </div>
+</div>

@@ -1,0 +1,29 @@
+.toolbar { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap;
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-secondary); } }
+.load-btn { height: 37px; }
+.voucher-list { display: flex; flex-direction: column; gap: 20px; }
+.voucher-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; max-width: 480px; }
+.voucher-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  border-bottom: 2px solid var(--accent); padding-bottom: 12px; margin-bottom: 16px;
+  h2 { font-size: 16px; margin: 0; color: var(--text-primary); }
+  p { font-size: 12px; margin: 2px 0 0; color: var(--text-secondary); }
+  .voucher-meta { text-align: right; p { margin: 0; font-size: 12px; color: var(--text-secondary); } }
+}
+.voucher-student {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-bottom: 16px; font-size: 13px;
+  span { color: var(--text-secondary); display: block; font-size: 11px; }
+  strong { color: var(--text-primary); font-weight: 500; }
+}
+.voucher-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+  td { padding: 6px 0; color: var(--text-primary); }
+  td:last-child { text-align: right; }
+  .subtotal-row td { border-top: 1px solid var(--border); font-weight: 500; padding-top: 8px; }
+  .total-row td { border-top: 2px solid var(--accent); font-weight: 700; padding-top: 10px; color: var(--accent-text); }
+}
+@media print {
+  .no-print { display: none !important; }
+  .voucher-card { box-shadow: none; border: 1px solid #ccc; page-break-after: always; max-width: 100%; }
+  .voucher-list { gap: 0; }
+}

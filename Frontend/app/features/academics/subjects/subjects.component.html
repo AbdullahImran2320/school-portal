@@ -1,0 +1,57 @@
+<app-academics-nav />
+<div class="page-header">
+  <h1>Subjects Management</h1>
+</div>
+
+<div class="toolbar">
+  <label>
+    Class
+    <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); onClassChange()" class="text-input">
+      @for (cls of classes(); track cls.classId) {
+        <option [ngValue]="cls.classId">{{ cls.className }}</option>
+      }
+    </select>
+  </label>
+</div>
+
+@if (loading()) {
+  <p class="state-message">Loading subjects…</p>
+} @else if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+} @else {
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Subject Name</th>
+          <th class="action-col">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (sub of subjects(); track sub.subjectId) {
+          <tr>
+            <td>{{ sub.subjectName }}</td>
+            <td class="action-col">
+              <button class="btn-delete" (click)="deleteSubject(sub.subjectId)" title="Delete Subject">✕</button>
+            </td>
+          </tr>
+        }
+        @if (subjects().length === 0) {
+          <tr>
+            <td colspan="2" class="state-message" style="border: none;">No subjects defined for this class.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="add-bar">
+    <h3>Add New Subject</h3>
+    <div class="add-form">
+      <input type="text" placeholder="e.g. Mathematics" class="text-input flex-grow" [ngModel]="newSubjectName()" (ngModelChange)="newSubjectName.set($event)" (keyup.enter)="addSubject()">
+      <button class="btn-primary" (click)="addSubject()" [disabled]="!newSubjectName().trim() || adding()">
+        {{ adding() ? 'Adding...' : 'Add Subject' }}
+      </button>
+    </div>
+  </div>
+}

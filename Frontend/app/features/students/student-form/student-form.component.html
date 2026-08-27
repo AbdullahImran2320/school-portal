@@ -1,0 +1,164 @@
+<div class="page-header">
+  <h1>{{ isEditMode() ? 'Edit Student' : 'New Student' }}</h1>
+  <a routerLink="/students" class="btn-secondary">Back to list</a>
+</div>
+
+@if (loading()) {
+  <p class="state-message">Loading...</p>
+} @else {
+
+  @if (submitError()) {
+    <div class="alert alert-error">{{ submitError() }}</div>
+  }
+
+  @if (!isEditMode()) {
+    <section class="form-section">
+      <h2>Parent / Guardian</h2>
+
+      @if (selectedParent(); as parent) {
+        <div class="selected-parent-card">
+          <div>
+            <strong>{{ parent.fatherName }}</strong> — {{ parent.fatherMobile }}
+            <div class="text-muted">{{ parent.childrenCount }} child(ren) already linked to this parent</div>
+          </div>
+          <button type="button" class="btn-link" (click)="clearSelectedParent()">Change</button>
+        </div>
+      } @else {
+        <div class="parent-mode-toggle">
+          <button type="button" [class.active]="parentMode() === 'search'" (click)="switchToSearchParent()">Find existing parent</button>
+          <button type="button" [class.active]="parentMode() === 'new'" (click)="switchToNewParent()">Add new parent</button>
+        </div>
+
+        @if (parentMode() === 'search') {
+          <div class="parent-search">
+            <input
+              type="text"
+              placeholder="Father's mobile number"
+              [value]="parentSearchMobile()"
+              (input)="parentSearchMobile.set($any($event.target).value)"
+              class="text-input"
+            />
+            <button type="button" class="btn-secondary" (click)="searchParent()" [disabled]="parentSearchLoading()">
+              {{ parentSearchLoading() ? 'Searching...' : 'Search' }}
+            </button>
+          </div>
+
+          @if (parentSearchError()) {
+            <p class="hint-text">{{ parentSearchError() }}</p>
+          }
+
+          @if (parentSearchResults().length > 0) {
+            <div class="parent-results">
+              @for (parent of parentSearchResults(); track parent.parentId) {
+                <div class="parent-result-row" (click)="selectParent(parent)">
+                  <div>
+                    <strong>{{ parent.fatherName }}</strong> — {{ parent.fatherMobile }}
+                    <div class="text-muted">{{ parent.address }} · {{ parent.childrenCount }} child(ren)</div>
+                  </div>
+                  <span class="btn-link">Select</span>
+                </div>
+              }
+            </div>
+          }
+        } @else {
+          <form [formGroup]="newParentForm" class="parent-new-form">
+            <div class="form-grid">
+              <label>Father's Name *
+                <input type="text" formControlName="fatherName" class="text-input" />
+              </label>
+              <label>Father's Mobile *
+                <input type="text" formControlName="fatherMobile" class="text-input" />
+              </label>
+              <label>Father's Occupation
+                <input type="text" formControlName="fatherOccupation" class="text-input" />
+              </label>
+              <label>Mother's Name
+                <input type="text" formControlName="motherName" class="text-input" />
+              </label>
+              <label>Mother's Mobile
+                <input type="text" formControlName="motherMobile" class="text-input" />
+              </label>
+              <label>Primary Guardian *
+                <select formControlName="primaryGuardian" class="text-input">
+                  <option value="Father">Father</option>
+                  <option value="Mother">Mother</option>
+                  <option value="MotherAndFather">Mother and Father</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+              <label class="full-width">Address *
+                <input type="text" formControlName="address" class="text-input" />
+              </label>
+            </div>
+          </form>
+        }
+      }
+    </section>
+  } @else if (existingParentSummary(); as parent) {
+    <section class="form-section">
+      <h2>Parent / Guardian</h2>
+      <p class="hint-text">{{ parent.fatherName }} — {{ parent.fatherMobile }} (managed from the Parents section, not here)</p>
+    </section>
+  }
+
+  <section class="form-section">
+    <h2>Student Details</h2>
+    <form [formGroup]="studentForm" (ngSubmit)="submit()" class="form-grid">
+      <label>Full Name *
+        <input type="text" formControlName="name" class="text-input" />
+      </label>
+
+      <label>B-Form Number *
+        <input type="text" formControlName="bFormNumber" placeholder="12345-1234567-1" class="text-input" />
+        @if (studentForm.get('bFormNumber')?.touched && studentForm.get('bFormNumber')?.invalid) {
+          <span class="field-error">Format must be 12345-1234567-1</span>
+        }
+      </label>
+
+      <label>Date of Birth *
+        <input type="date" formControlName="dateOfBirth" class="text-input" />
+      </label>
+
+      <label>Gender *
+        <select formControlName="gender" class="text-input">
+          <option value="" disabled>Select...</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </label>
+
+      <label>Admission Date *
+        <input type="date" formControlName="admissionDate" class="text-input" />
+        @if (isEditMode()) {
+          <span class="hint-text">Admission date can't be changed after creation.</span>
+        }
+      </label>
+
+      <label>Admission Status *
+        <select formControlName="admissionStatus" class="text-input">
+          <option value="Applied">Applied</option>
+          <option value="Admitted">Admitted</option>
+          <option value="Withdrawn">Withdrawn</option>
+          <option value="Rejected">Rejected</option>
+          <option value="Graduated">Graduated</option>
+        </select>
+      </label>
+
+      <label>Class *
+        <select formControlName="classId" class="text-input">
+          <option [ngValue]="null" disabled>Select a class...</option>
+          @for (cls of classes(); track cls.classId) {
+            <option [ngValue]="cls.classId">{{ cls.className }}</option>
+          }
+        </select>
+      </label>
+    </form>
+  </section>
+
+  <div class="form-actions">
+    <a routerLink="/students" class="btn-secondary">Cancel</a>
+    <button type="button" class="btn-primary" (click)="submit()" [disabled]="submitting()">
+      {{ submitting() ? 'Saving...' : (isEditMode() ? 'Save Changes' : 'Create Student') }}
+    </button>
+  </div>
+}

@@ -1,0 +1,104 @@
+<app-academics-nav class="no-print" />
+<div class="page-header no-print">
+  <h1>Student Report Card</h1>
+</div>
+
+<div class="toolbar no-print">
+  <label>
+    Class
+    <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); onClassChange()" class="text-input">
+      <option [ngValue]="null" disabled>— Select Class —</option>
+      @for (cls of classes(); track cls.classId) {
+        <option [ngValue]="cls.classId">{{ cls.className }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Student
+    <select [ngModel]="selectedStudentId()" (ngModelChange)="selectedStudentId.set($event); onStudentChange()" class="text-input" [disabled]="filteredStudents().length === 0">
+      <option [ngValue]="null" disabled>— Select Student —</option>
+      @for (s of filteredStudents(); track s.studentId) {
+        <option [ngValue]="s.studentId">{{ s.name }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Exam
+    <select [ngModel]="selectedExamId()" (ngModelChange)="selectedExamId.set($event); onExamChange()" class="text-input">
+      <option [ngValue]="null" disabled>— Select Exam —</option>
+      @for (ex of exams(); track ex.examId) {
+        <option [ngValue]="ex.examId">{{ ex.examName }} ({{ ex.term }})</option>
+      }
+    </select>
+  </label>
+</div>
+
+@if (loading()) {
+  <p class="state-message no-print">Loading report card…</p>
+} @else if (error()) {
+  <p class="state-message state-error no-print">{{ error() }}</p>
+} @else if (reportCard(); as card) {
+  <div class="print-actions no-print">
+    <button class="btn-primary" (click)="printReport()">Print Report Card</button>
+  </div>
+
+  <div class="report-card-container print-area">
+    <div class="rc-header">
+      <div class="rc-school-info">
+        <h2>Bright Grammar School</h2>
+        <p>Main Campus</p>
+      </div>
+      <div class="rc-title">
+        <h3>Report Card</h3>
+        <p>{{ card.examName }} - {{ card.term }}</p>
+      </div>
+    </div>
+
+    <div class="rc-student-info">
+      <div class="info-group">
+        <span class="label">Student Name:</span>
+        <span class="value">{{ card.studentName }}</span>
+      </div>
+    </div>
+
+    <div class="rc-summary">
+      <div class="percentage-ring" [style.--pct]="card.overallPercentage">
+        <div class="ring-inner">
+          <span class="ring-value">{{ card.overallPercentage | number:'1.0-1' }}%</span>
+          <span class="ring-label">Overall</span>
+        </div>
+      </div>
+      
+      <div class="status-badge" [class.badge-pass]="card.overallResult === 'Pass'" [class.badge-fail]="card.overallResult === 'Fail'">
+        {{ card.overallResult | uppercase }}
+      </div>
+    </div>
+
+    <table class="rc-table">
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th class="text-center">Total Marks</th>
+          <th class="text-center">Marks Obtained</th>
+          <th class="text-center">Percentage</th>
+          <th class="text-center">Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (sub of card.subjects; track sub.resultId) {
+          <tr>
+            <td>{{ sub.subjectName }}</td>
+            <td class="text-center">{{ sub.totalMarks }}</td>
+            <td class="text-center">{{ sub.marksObtained }}</td>
+            <td class="text-center">{{ sub.percentage | number:'1.0-1' }}%</td>
+            <td class="text-center">
+              <span class="status-text" [class.text-success]="sub.passFail === 'Pass'" [class.text-error]="sub.passFail === 'Fail'">
+                {{ sub.passFail }}
+              </span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

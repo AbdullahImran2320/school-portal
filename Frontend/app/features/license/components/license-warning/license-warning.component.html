@@ -1,0 +1,9 @@
+@if (daysRemaining > 0) {
+  <div class="license-warning" role="alert" aria-live="polite">
+    <div>
+      <strong>{{ message || ('Your license expires in ' + daysRemaining + ' days.') }}</strong>
+      <span>Please renew before access is interrupted.</span>
+    </div>
+    <a routerLink="/license">Manage license</a>
+  </div>
+}

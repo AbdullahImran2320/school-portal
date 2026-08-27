@@ -1,0 +1,90 @@
+.toolbar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+}
+
+.quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+
+  .mark-count {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+}
+
+.col-num {
+  width: 40px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.col-status {
+  width: 180px;
+}
+
+.status-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.dot-present { background: var(--status-paid); }
+  &.dot-absent { background: var(--status-overdue); }
+  &.dot-leave { background: var(--status-partial); }
+  &.dot-late { background: var(--status-unpaid); }
+  &.dot-notmarked { background: var(--border); }
+}
+
+.status-select {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 8px;
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--text-primary);
+  cursor: pointer;
+
+  &:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+  }
+}
+
+tr.not-marked {
+  opacity: 0.6;
+}
+
+.submit-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.success-msg {
+  font-size: 13px;
+  color: var(--status-paid);
+  font-weight: 500;
+}

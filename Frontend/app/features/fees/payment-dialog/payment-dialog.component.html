@@ -1,0 +1,79 @@
+<div class="dialog-backdrop" (click)="close()">
+  <div class="dialog-card" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h2>Record Payment</h2>
+      <button class="close-btn" (click)="close()">&times;</button>
+    </div>
+
+    <div class="dialog-body">
+      <p class="dialog-subtitle">{{ target.studentName }} — {{ target.label }}</p>
+
+      <div class="amount-summary">
+        <div><span>Due</span><span>Rs {{ target.dueAmount | number }}</span></div>
+        @if (target.discountAmount > 0) {
+          <div><span>Discount</span><span>- Rs {{ target.discountAmount | number }}</span></div>
+        }
+        @if (target.lateFeeAmount > 0) {
+          <div><span>Late fee</span><span>+ Rs {{ target.lateFeeAmount | number }}</span></div>
+        }
+        <div><span>Already paid</span><span>Rs {{ target.paidAmount | number }}</span></div>
+        <div class="amount-outstanding"><span>Outstanding</span><span>Rs {{ outstandingAfterDiscount() | number }}</span></div>
+      </div>
+
+      @if (error()) {
+        <div class="alert-error">{{ error() }}</div>
+      }
+
+      <label>Concession / discount for this fee
+        <input
+          type="number"
+          min="0"
+          [ngModel]="discount()"
+          (ngModelChange)="discount.set($event)"
+          class="text-input"
+          placeholder="0"
+        />
+      </label>
+
+
+      <div class="fine-section">
+        <div class="fine-heading">Fine</div>
+        <div class="fine-presets">
+          <button type="button" [class.active]="fine() === 0" (click)="setFine(0)">No Fine (0)</button>
+          <button type="button" [class.active]="fine() === 500" (click)="setFine(500)">Low (500)</button>
+          <button type="button" [class.active]="fine() === 1000" (click)="setFine(1000)">High (1,000)</button>
+          <button type="button" [class.active]="fine() === null" (click)="setFine(null)">Automatic</button>
+        </div>
+        <label>Fine amount (Rs)
+          <input type="number" min="0" [ngModel]="fine()" (ngModelChange)="fine.set($event); amount.set(totalPayable())" class="text-input" placeholder="Automatic" />
+        </label>
+        <div class="final-total"><span>Total Payable</span><strong>Rs {{ totalPayable() | number }}</strong></div>
+      </div>
+
+      <label>Amount to collect
+        <div class="amount-input-row">
+          <input type="number" [ngModel]="amount()" (ngModelChange)="amount.set($event)" class="text-input" />
+          <button type="button" class="btn-secondary" (click)="fillFullAmount()">Full amount</button>
+        </div>
+      </label>
+
+      <label>Payment method
+        <select [ngModel]="method()" (ngModelChange)="method.set($event)" class="text-input">
+          <option value="Cash">Cash</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+        </select>
+      </label>
+
+      <label>Collected by
+        <input type="text" [ngModel]="collectedBy()" (ngModelChange)="collectedBy.set($event)" class="text-input" placeholder="Your name" />
+      </label>
+    </div>
+
+    <div class="dialog-footer">
+      <button type="button" class="btn-secondary" (click)="close()">Cancel</button>
+      <button type="button" class="btn-primary" [disabled]="submitting()" (click)="submit()">
+        {{ submitting() ? 'Recording...' : 'Record Payment' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,156 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  h1 { margin: 0; color: var(--text-primary); }
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover { background: var(--surface-accent); color: var(--text-primary); }
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { background: var(--accent-hover); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--accent-text);
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0;
+
+  &:hover { text-decoration: underline; }
+}
+
+.state-message { color: var(--text-secondary); padding: 24px 0; }
+
+.alert {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  font-size: 14px;
+  background: var(--status-overdue-bg);
+  color: var(--status-overdue);
+}
+
+.form-section {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+
+  h2 { margin: 0 0 16px; font-size: 15px; color: var(--text-primary); }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .full-width { grid-column: 1 / -1; }
+}
+
+.text-input {
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-size: 14px;
+
+  &:focus { outline: none; border-color: var(--accent); }
+}
+
+.field-error { color: var(--status-overdue); font-size: 12px; }
+.hint-text { color: var(--text-muted); font-size: 12px; margin: 4px 0 0; }
+.text-muted { color: var(--text-muted); font-size: 12px; }
+
+.parent-mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  button {
+    background: var(--bg-page);
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
+    border-radius: var(--radius);
+    padding: 7px 14px;
+    font-size: 13px;
+    cursor: pointer;
+
+    &.active {
+      background: var(--surface-accent);
+      color: var(--accent-text);
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+  }
+}
+
+.parent-search {
+  display: flex;
+  gap: 8px;
+  max-width: 420px;
+  .text-input { flex: 1; }
+}
+
+.parent-results {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.parent-result-row, .selected-parent-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+
+  &:hover { background: var(--surface-accent); }
+}
+
+.selected-parent-card { cursor: default; background: var(--surface-accent); }
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}

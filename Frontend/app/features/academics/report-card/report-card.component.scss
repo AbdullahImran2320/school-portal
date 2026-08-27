@@ -1,0 +1,128 @@
+.toolbar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+}
+
+.print-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.report-card-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.rc-header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--border-strong);
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+
+  .rc-school-info h2 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    color: var(--text-primary);
+  }
+  .rc-school-info p { margin: 0; color: var(--text-secondary); }
+
+  .rc-title {
+    text-align: right;
+    h3 { margin: 0 0 4px; font-size: 20px; color: var(--text-primary); }
+    p { margin: 0; color: var(--accent-text); font-weight: 500; }
+  }
+}
+
+.rc-student-info {
+  margin-bottom: 30px;
+  .info-group {
+    font-size: 16px;
+    .label { color: var(--text-secondary); margin-right: 8px; }
+    .value { font-weight: 600; color: var(--text-primary); }
+  }
+}
+
+.rc-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.percentage-ring {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) calc(var(--pct) * 1%), var(--border) 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ring-inner {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  .ring-value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+  .ring-label { font-size: 11px; color: var(--text-muted); }
+}
+
+.status-badge {
+  padding: 12px 32px;
+  border-radius: 30px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  border: 2px solid transparent;
+
+  &.badge-pass { color: var(--status-paid); background: var(--status-paid-bg); border-color: var(--status-paid); }
+  &.badge-fail { color: var(--status-overdue); background: var(--status-overdue-bg); border-color: var(--status-overdue); }
+}
+
+.rc-table {
+  width: 100%;
+  border-collapse: collapse;
+  
+  th, td { padding: 12px; border-bottom: 1px solid var(--border); }
+  th { text-align: left; background: var(--surface-accent); color: var(--text-secondary); font-weight: 600; }
+  
+  .text-center { text-align: center; }
+}
+
+.status-text {
+  font-weight: 600;
+  &.text-success { color: var(--status-paid); }
+  &.text-error { color: var(--status-overdue); }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .report-card-container {
+    border: none;
+    padding: 0;
+    max-width: 100%;
+  }
+}

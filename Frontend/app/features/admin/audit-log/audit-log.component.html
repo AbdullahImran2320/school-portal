@@ -1,0 +1,70 @@
+<app-admin-nav />
+<div class="page-header">
+  <h1>Audit Log</h1>
+  <p class="page-subtitle">Every add, edit, and delete across the system, newest first. Capped to the last 500 matching entries.</p>
+</div>
+
+<div class="toolbar">
+  <label>
+    Entity
+    <select [ngModel]="filterEntityName()" (ngModelChange)="filterEntityName.set($event)" class="text-input">
+      <option value="">— All —</option>
+      @for (name of knownEntities; track name) {
+        <option [value]="name">{{ name }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Entity ID
+    <input type="text" placeholder="e.g. 42" class="text-input w-24"
+           [ngModel]="filterEntityId()" (ngModelChange)="filterEntityId.set($event)" (keyup.enter)="applyFilters()">
+  </label>
+  <label>
+    From
+    <input type="date" class="text-input" [ngModel]="filterFrom()" (ngModelChange)="filterFrom.set($event)">
+  </label>
+  <label>
+    To
+    <input type="date" class="text-input" [ngModel]="filterTo()" (ngModelChange)="filterTo.set($event)">
+  </label>
+  <button class="btn-primary" (click)="applyFilters()">Apply Filters</button>
+  <button class="btn-secondary" (click)="clearFilters()">Clear</button>
+</div>
+
+@if (loading()) {
+  <p class="state-message">Loading audit log…</p>
+} @else if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+} @else {
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Entity</th>
+          <th>ID</th>
+          <th>Action</th>
+          <th>Changed By</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (log of logs(); track log.auditLogId) {
+          <tr>
+            <td class="nowrap">{{ log.timestamp | date:'d MMM y, h:mm a' }}</td>
+            <td>{{ log.entityName }}</td>
+            <td>{{ log.entityId }}</td>
+            <td><span class="action-badge" [class]="actionClass(log.action)">{{ log.action }}</span></td>
+            <td>{{ log.changedBy }}</td>
+            <td class="details-cell">{{ log.details }}</td>
+          </tr>
+        }
+        @if (logs().length === 0) {
+          <tr>
+            <td colspan="6" class="state-message" style="border: none;">No audit log entries match these filters.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

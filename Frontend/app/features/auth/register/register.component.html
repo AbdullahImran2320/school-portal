@@ -1,0 +1,39 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+    <div class="auth-logo"><ng-icon name="tablerSchool" /></div>
+      <h1>Bright Grammar School</h1>
+      <p>Create an account</p>
+    </div>
+
+    @if (successMessage()) {
+      <p class="success">{{ successMessage() }}</p>
+      <p class="auth-switch"><a routerLink="/login">Go to login</a></p>
+    } @else {
+      <form (ngSubmit)="submit()">
+        <label>
+          Full name
+          <input type="text" [(ngModel)]="fullName" name="fullName" />
+        </label>
+        <label>
+          Username
+          <input type="text" [(ngModel)]="username" name="username" />
+        </label>
+        <label>
+          Password
+          <input type="password" [(ngModel)]="password" name="password" />
+        </label>
+
+        @if (errorMessage()) {
+          <p class="error">{{ errorMessage() }}</p>
+        }
+
+        <button type="submit" [disabled]="loading()">
+          {{ loading() ? 'Creating account…' : 'Sign up' }}
+        </button>
+      </form>
+
+      <p class="auth-switch">Already have an account? <a routerLink="/login">Sign in</a></p>
+    }
+  </div>
+</div>

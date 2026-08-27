@@ -1,0 +1,92 @@
+.topbar {
+  height: 60px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+}
+
+.topbar-spacer { flex: 1; }
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar-logo {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--surface-accent);
+}
+
+.topbar-logo img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.user-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.user-role {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+
+  ng-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: var(--surface-accent);
+    color: var(--text-primary);
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    padding: 0 14px;
+  }
+
+  .topbar-actions {
+    gap: 10px;
+  }
+
+  .user-chip {
+    display: none;
+  }
+
+  .logout-btn span {
+    display: none;
+  }
+}

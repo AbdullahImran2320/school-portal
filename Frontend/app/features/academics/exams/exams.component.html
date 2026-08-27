@@ -1,0 +1,89 @@
+<app-academics-nav />
+<div class="page-header">
+  <h1>Exams Management</h1>
+</div>
+
+@if (loading()) {
+  <p class="state-message">Loading exams…</p>
+} @else if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+} @else {
+  @if (actionError()) {
+    <p class="state-message state-error action-error">{{ actionError() }}</p>
+  }
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Exam Name</th>
+          <th>Term</th>
+          <th>Academic Year</th>
+          <th class="action-col">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (ex of exams(); track ex.examId) {
+          @if (editingExamId() === ex.examId) {
+            <tr>
+              <td>
+                <input type="text" class="text-input" [ngModel]="editDraft().examName"
+                       (ngModelChange)="editDraft().examName = $event" (keyup.enter)="saveEdit(ex.examId)">
+              </td>
+              <td>
+                <select class="text-input" [ngModel]="editDraft().term" (ngModelChange)="editDraft().term = $event">
+                  <option value="1st Term">1st Term</option>
+                  <option value="2nd Term">2nd Term</option>
+                  <option value="Final Term">Final Term</option>
+                </select>
+              </td>
+              <td>
+                <input type="text" class="text-input" [ngModel]="editDraft().academicYear"
+                       (ngModelChange)="editDraft().academicYear = $event" (keyup.enter)="saveEdit(ex.examId)">
+              </td>
+              <td class="action-col">
+                <button class="btn-save" (click)="saveEdit(ex.examId)" [disabled]="!editDraft().examName.trim() || saving()" title="Save">✓</button>
+                <button class="btn-cancel" (click)="cancelEdit()" title="Cancel">✕</button>
+              </td>
+            </tr>
+          } @else {
+            <tr>
+              <td>{{ ex.examName }}</td>
+              <td>{{ ex.term }}</td>
+              <td>{{ ex.academicYear }}</td>
+              <td class="action-col">
+                <button class="btn-edit" (click)="startEdit(ex)" title="Edit Exam">✎</button>
+                <button class="btn-delete" (click)="deleteExam(ex)" [disabled]="deletingId() === ex.examId" title="Delete Exam">✕</button>
+              </td>
+            </tr>
+          }
+        }
+        @if (exams().length === 0) {
+          <tr>
+            <td colspan="4" class="state-message" style="border: none;">No exams have been created yet.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="add-bar">
+    <h3>Create New Exam</h3>
+    <div class="add-form">
+      <input type="text" placeholder="e.g. Midterm Exams" class="text-input flex-grow" 
+             [ngModel]="newExam().examName" (ngModelChange)="newExam().examName = $event" (keyup.enter)="addExam()">
+      
+      <select class="text-input" [ngModel]="newExam().term" (ngModelChange)="newExam().term = $event">
+        <option value="1st Term">1st Term</option>
+        <option value="2nd Term">2nd Term</option>
+        <option value="Final Term">Final Term</option>
+      </select>
+
+      <input type="text" placeholder="Year (e.g. 2026)" class="text-input w-24" 
+             [ngModel]="newExam().academicYear" (ngModelChange)="newExam().academicYear = $event" (keyup.enter)="addExam()">
+
+      <button class="btn-primary" (click)="addExam()" [disabled]="!newExam().examName.trim() || adding()">
+        {{ adding() ? 'Creating...' : 'Create Exam' }}
+      </button>
+    </div>
+  </div>
+}

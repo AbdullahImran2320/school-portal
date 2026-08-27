@@ -1,0 +1,67 @@
+<div class="page-header">
+  <div>
+    <h1>Students</h1>
+    <p class="page-subtitle">{{ filteredStudents().length }} of {{ students().length }} students</p>
+  </div>
+  @if (isAdmin()) {
+    <a routerLink="/students/new" class="btn-primary">+ New Student</a>
+  }
+</div>
+
+<div class="toolbar">
+  <input
+    type="text"
+    placeholder="Search by name, B-Form number, or class..."
+    [value]="searchTerm()"
+    (input)="searchTerm.set($any($event.target).value)"
+    class="search-input"
+  />
+</div>
+
+@if (deleteError()) {
+  <div class="alert alert-error">{{ deleteError() }}</div>
+}
+
+@if (loading()) {
+  <p class="state-message">Loading students...</p>
+} @else if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+} @else if (filteredStudents().length === 0) {
+  <p class="state-message">No students found.</p>
+} @else {
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>B-Form Number</th>
+        <th>Class</th>
+        <th>Father</th>
+        <th>Mobile</th>
+        <th>Status</th>
+        @if (isAdmin()) { <th></th> }
+      </tr>
+    </thead>
+    <tbody>
+      @for (student of filteredStudents(); track student.studentId) {
+        <tr>
+          <td>{{ student.name }}</td>
+          <td>{{ student.bFormNumber }}</td>
+          <td>{{ student.className }}</td>
+          <td>{{ student.fatherName }}</td>
+          <td>{{ student.fatherMobile }}</td>
+          <td>
+            <span class="status-badge" [class]="'status-' + student.admissionStatus.toLowerCase()">
+              {{ student.admissionStatus }}
+            </span>
+          </td>
+          @if (isAdmin()) {
+            <td class="actions-cell">
+              <a [routerLink]="['/students', student.studentId, 'edit']" class="btn-link">Edit</a>
+              <button (click)="deleteStudent(student)" class="btn-link btn-danger">Delete</button>
+            </td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+}

@@ -1,0 +1,29 @@
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark" title="Bright Grammar School">
+      <img
+        src="/school-logo-transparent.png"
+        alt="Bright Grammar School"
+      />
+    </div>
+
+    <div class="brand-text">
+      <div class="brand-name">{{ schoolName }}</div>
+      <div class="brand-campus">{{ campusName }}</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    @for (item of visibleItems(); track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        class="nav-item"
+      >
+        <ng-icon [name]="item.icon" class="nav-icon" />
+        <span class="nav-label">{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+  <div class="sidebar-footer">{{ developedBy }}</div>
+</aside>

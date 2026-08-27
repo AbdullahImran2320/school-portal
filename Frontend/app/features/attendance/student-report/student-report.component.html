@@ -1,0 +1,102 @@
+<app-attendance-nav class="no-print" />
+<div class="page-header no-print">
+  <h1>Student Attendance Report</h1>
+</div>
+
+<div class="toolbar no-print">
+  <label>
+    Class
+    <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); onClassChange()" class="text-input">
+      @for (cls of classes(); track cls.classId) {
+        <option [ngValue]="cls.classId">{{ cls.className }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Student
+    <select [ngModel]="selectedStudentId()" (ngModelChange)="selectedStudentId.set($event); onStudentChange()" class="text-input student-select">
+      <option [ngValue]="null" disabled>— Select Student —</option>
+      @for (s of filteredStudents(); track s.studentId) {
+        <option [ngValue]="s.studentId">{{ s.name }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Month
+    <select [ngModel]="selectedMonth()" (ngModelChange)="selectedMonth.set($event); onMonthChange()" class="text-input">
+      @for (m of monthNames; track m; let i = $index) {
+        <option [ngValue]="i + 1">{{ m }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Year
+    <select [ngModel]="selectedYear()" (ngModelChange)="selectedYear.set($event); onYearChange()" class="text-input">
+      @for (year of yearOptions(); track year) {
+        <option [ngValue]="year">{{ year }}</option>
+      }
+    </select>
+  </label>
+</div>
+
+@if (!selectedStudentId()) {
+  <p class="state-message">Select a student to view their attendance report.</p>
+} @else if (loading()) {
+  <p class="state-message">Loading attendance data…</p>
+} @else if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+} @else if (summary(); as s) {
+  <div class="print-actions no-print">
+    <button class="btn-primary" (click)="printReport()">Print Attendance Report</button>
+  </div>
+
+  <div class="print-area">
+    <div class="ar-header">
+      <div class="ar-school-info">
+        <h2>Bright Grammar School</h2>
+        <p>Main Campus</p>
+      </div>
+      <div class="ar-title">
+        <h3>Attendance Report</h3>
+        <p>{{ monthNames[selectedMonth() - 1] }} {{ selectedYear() }}</p>
+      </div>
+    </div>
+
+    <div class="ar-student-info">
+      <span class="label">Student Name:</span>
+      <span class="value">{{ s.studentName }}</span>
+    </div>
+
+    <div class="report-layout">
+      <div class="percentage-ring" [style.--pct]="s.attendancePercentage">
+        <div class="ring-inner">
+          <span class="ring-value">{{ s.attendancePercentage }}%</span>
+          <span class="ring-label">Attendance</span>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card stat-present">
+          <div class="stat-value">{{ s.presentDays }}</div>
+          <div class="stat-label">Present</div>
+        </div>
+        <div class="stat-card stat-absent">
+          <div class="stat-value">{{ s.absentDays }}</div>
+          <div class="stat-label">Absent</div>
+        </div>
+        <div class="stat-card stat-leave">
+          <div class="stat-value">{{ s.leaveDays }}</div>
+          <div class="stat-label">Leave</div>
+        </div>
+        <div class="stat-card stat-late">
+          <div class="stat-value">{{ s.lateDays }}</div>
+          <div class="stat-label">Late</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="summary-text">
+      {{ s.totalMarkedDays }} days marked · {{ s.studentName }} · {{ monthNames[selectedMonth() - 1] }} {{ selectedYear() }}
+    </p>
+  </div>
+}

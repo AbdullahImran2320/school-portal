@@ -1,0 +1,134 @@
+<app-fees-nav />
+<div class="page-header">
+  <h1>Fees</h1>
+</div>
+
+<div class="toolbar">
+  <label>
+    Class
+    <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); onClassChange()" class="text-input">
+      @for (cls of classes(); track cls.classId) {
+        <option [ngValue]="cls.classId">{{ cls.className }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Year
+    <select [ngModel]="selectedYear()" (ngModelChange)="selectedYear.set($event); onYearChange()" class="text-input">
+      @for (year of yearOptions(); track year) {
+        <option [ngValue]="year">{{ year }}</option>
+      }
+    </select>
+  </label>
+</div>
+
+@if (loading()) {
+  <p class="state-message">Loading fee grid...</p>
+} @else if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+} @else if (grid(); as g) {
+  <div class="grid-scroll">
+    <table class="fee-grid-table">
+      <thead>
+        <tr>
+          <th class="student-col">Student</th>
+          @for (label of monthLabels; track label) {
+            <th>{{ label }}</th>
+          }
+          <th class="outstanding-col">Outstanding</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (student of g.students; track student.studentId) {
+          <tr>
+            <td class="student-col">
+              <div class="student-cell">
+                <div class="student-info">
+                  <span class="student-name">{{ student.studentName }}</span>
+                  <span class="admission-label">Admitted: {{ student.months[0]?.monthNumber ? monthLabels[student.months[0].monthNumber - 1] : '—' }}</span>
+                </div>
+                @if (isAdmin()) {
+                  <button type="button" class="concession-btn" (click)="openConcession(student)" title="Set student-specific monthly concession">
+                    <span class="concession-icon">▣</span>
+                    <span>Concession</span>
+                  </button>
+                }
+              </div>
+            </td>
+            @for (label of monthLabels; track label; let monthIndex = $index) {
+              @if (getMonthCell(student, monthIndex + 1); as month) {
+                <td class="month-cell">
+                  <button
+                    class="status-cell"
+                    [class]="'status-' + month.status.toLowerCase()"
+                    (click)="openCell(student, month)"
+                    [title]="month.status + ' — Rs ' + monthOutstanding(month) + ' owed'"
+                  ></button>
+                </td>
+              } @else {
+                <td class="month-cell not-applicable" aria-label="Not applicable"></td>
+              }
+            }
+            <td class="outstanding-col">Rs {{ student.totalOutstanding | number }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot status-paid"></span>Paid</span>
+    <span><span class="dot status-partial"></span>Partial</span>
+    <span><span class="dot status-overdue"></span>Overdue</span>
+    <span><span class="dot status-unpaid"></span>Unpaid</span>
+  </div>
+}
+
+@if (paymentTarget(); as target) {
+  <app-payment-dialog [target]="target" (recorded)="onPaymentRecorded()" (cancelled)="closeDialog()" />
+}
+
+@if (concessionStudent(); as student) {
+  <div class="dialog-backdrop" (click)="closeConcession()">
+    <div class="concession-dialog" (click)="$event.stopPropagation()">
+      <div class="concession-header">
+        <div>
+          <h2>Update Fee Concession</h2>
+          <p>{{ student.studentName }}</p>
+        </div>
+        <button type="button" class="close-btn" (click)="closeConcession()">&times;</button>
+      </div>
+
+      <div class="concession-body">
+        <div class="concession-meta">
+          <div><span>Student</span><strong>{{ student.studentName }}</strong></div>
+          <div><span>Class</span><strong>{{ grid()?.className }}</strong></div>
+        </div>
+
+        <div class="concession-field">
+          <label>Monthly concession amount (Rs)</label>
+          <input type="number" min="0" [ngModel]="concessionAmount()" (ngModelChange)="concessionAmount.set($event)" class="text-input" placeholder="0" />
+        </div>
+
+        <div class="concession-preview">
+          <span>Fee after concession</span>
+          <strong>Set per student's monthly fee</strong>
+        </div>
+
+        <div class="concession-field">
+          <label>Reason (Optional)</label>
+          <input type="text" [ngModel]="concessionReason()" (ngModelChange)="concessionReason.set($event)" class="text-input" placeholder="Sibling concession, scholarship, etc." />
+        </div>
+
+        @if (concessionError()) { <div class="concession-error">{{ concessionError() }}</div> }
+      </div>
+
+      <div class="concession-footer">
+        <button type="button" class="btn-secondary" (click)="closeConcession()">Cancel</button>
+        <button type="button" class="btn-primary" [disabled]="concessionSaving()" (click)="saveConcession()">
+          {{ concessionSaving() ? 'Saving...' : 'Save' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

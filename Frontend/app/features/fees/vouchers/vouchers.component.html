@@ -1,0 +1,60 @@
+<app-fees-nav class="no-print" />
+<div class="page-header no-print">
+  <h1>Vouchers</h1>
+  <p class="page-subtitle">Generate printable fee vouchers for an entire class.</p>
+</div>
+
+<div class="toolbar no-print">
+  <label>Class
+    <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event)" class="text-input">
+      @for (cls of classes(); track cls.classId) { <option [ngValue]="cls.classId">{{ cls.className }}</option> }
+    </select>
+  </label>
+  <label>Month
+    <select [ngModel]="selectedMonth()" (ngModelChange)="selectedMonth.set($event)" class="text-input">
+      @for (m of monthNames; track m; let i = $index) { <option [ngValue]="i + 1">{{ m }}</option> }
+    </select>
+  </label>
+  <label>Year
+    <select [ngModel]="selectedYear()" (ngModelChange)="selectedYear.set($event)" class="text-input">
+      @for (y of yearOptions(); track y) { <option [ngValue]="y">{{ y }}</option> }
+    </select>
+  </label>
+  <button class="btn-primary load-btn" (click)="loadVouchers()">Load vouchers</button>
+  @if (vouchers().length > 0) { <button class="btn-secondary" (click)="printAll()">Print all</button> }
+</div>
+
+@if (loading()) { <p class="state-message no-print">Loading...</p> }
+@if (error()) { <p class="state-message state-error no-print">{{ error() }}</p> }
+
+<div class="voucher-list print-area">
+  @for (v of vouchers(); track v.studentId) {
+    <div class="voucher-card">
+      <div class="voucher-header">
+        <div><h2>{{ v.schoolName }}</h2><p>{{ v.campusName }}</p></div>
+        <div class="voucher-meta"><p>Challan #{{ v.challanNumber }}</p><p>Due: {{ v.dueDate | date:'d MMM y' }}</p></div>
+      </div>
+
+      <div class="voucher-student">
+        <div><span>Student</span><strong>{{ v.studentName }}</strong></div>
+        <div><span>Class</span><strong>{{ v.className }}</strong></div>
+        <div><span>B-Form</span><strong>{{ v.bFormNumber }}</strong></div>
+        <div><span>Father</span><strong>{{ v.fatherName }}</strong></div>
+        <div><span>Contact</span><strong>{{ v.fatherMobile }}</strong></div>
+      </div>
+
+      <table class="voucher-table">
+        <tbody>
+          <tr><td>Monthly fee ({{ monthNames[v.voucherMonth - 1] }} {{ v.voucherYear }})</td><td>Rs {{ v.monthlyFeeDue | number }}</td></tr>
+          @if (v.discountAmount > 0) { <tr><td>Discount</td><td>- Rs {{ v.discountAmount | number }}</td></tr> }
+          @if (v.lateFeeAmount > 0) { <tr><td>Late fee</td><td>+ Rs {{ v.lateFeeAmount | number }}</td></tr> }
+          <tr class="subtotal-row"><td>Net payable (monthly)</td><td>Rs {{ v.monthlyNetPayable | number }}</td></tr>
+          @for (charge of v.outstandingCharges; track charge.chargeType) {
+            <tr><td>{{ charge.chargeType }} (outstanding)</td><td>Rs {{ charge.balance | number }}</td></tr>
+          }
+          <tr class="total-row"><td>Total amount due</td><td>Rs {{ v.totalAmountDue | number }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

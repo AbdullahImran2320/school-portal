@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Build backend (.NET 8)
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: Backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore SchoolPortal.API.csproj
+
+      - name: Build
+        run: dotnet build SchoolPortal.API.csproj --configuration Release --no-restore
+
+  frontend:
+    name: Build frontend (Angular)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Using `npm install` (not `npm ci`) because no package-lock.json is
+      # committed yet. Once you run `npm install` locally and commit the
+      # resulting package-lock.json, switch this to `npm ci` and add
+      # `cache: npm` / `cache-dependency-path` back above for faster runs.
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build (production)
+        run: npx ng build --configuration production

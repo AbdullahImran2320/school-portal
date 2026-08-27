@@ -1,0 +1,73 @@
+<app-attendance-nav />
+<div class="page-header">
+  <h1>Mark Attendance</h1>
+</div>
+
+<div class="toolbar">
+  <label>
+    Class
+    <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); onClassChange()" class="text-input">
+      @for (cls of classes(); track cls.classId) {
+        <option [ngValue]="cls.classId">{{ cls.className }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Date
+    <input type="date" [ngModel]="selectedDate()" (ngModelChange)="selectedDate.set($event); onDateChange()" class="text-input" />
+  </label>
+</div>
+
+@if (loading()) {
+  <p class="state-message">Loading students…</p>
+} @else if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+} @else if (rows().length === 0) {
+  <p class="state-message">No students found in this class.</p>
+} @else {
+  <div class="quick-actions">
+    <button class="btn-secondary" (click)="setAll('Present')">✓ All Present</button>
+    <button class="btn-secondary" (click)="setAll('Absent')">✗ All Absent</button>
+    <span class="mark-count">{{ markedCount() }} / {{ totalCount() }} marked</span>
+  </div>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th>Student</th>
+          <th class="col-status">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.studentId; let i = $index) {
+          <tr [class.not-marked]="row.status === 'NotMarked'">
+            <td class="col-num">{{ i + 1 }}</td>
+            <td>{{ row.studentName }}</td>
+            <td class="col-status">
+              <div class="status-control">
+                <span class="status-dot" [class]="'dot-' + row.status.toLowerCase()"></span>
+                <select [ngModel]="row.status" (ngModelChange)="setStatus(row.studentId, $event)" class="status-select">
+                  <option value="NotMarked" disabled>— Select —</option>
+                  @for (s of statuses; track s) {
+                    <option [value]="s">{{ s }}</option>
+                  }
+                </select>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="submit-bar">
+    @if (success()) {
+      <span class="success-msg">{{ success() }}</span>
+    }
+    <button class="btn-primary" (click)="submit()" [disabled]="submitting()">
+      {{ submitting() ? 'Saving…' : 'Save Attendance' }}
+    </button>
+  </div>
+}

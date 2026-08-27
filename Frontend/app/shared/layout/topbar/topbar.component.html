@@ -1,0 +1,21 @@
+<header class="topbar">
+  <div class="topbar-spacer"></div>
+
+  <div class="topbar-actions">
+    <div class="topbar-logo" title="Bright Grammar School">
+      <img src="/school-logo-mark.png" alt="Bright Grammar School" />
+    </div>
+
+    <app-theme-toggle />
+
+    <div class="user-chip">
+      <span class="user-name">{{ auth.currentUser()?.fullName }}</span>
+      <span class="user-role">{{ auth.currentUser()?.role }}</span>
+    </div>
+
+    <button class="logout-btn" (click)="logout()">
+      <ng-icon name="tablerLogout" />
+      <span>Log out</span>
+    </button>
+  </div>
+</header>

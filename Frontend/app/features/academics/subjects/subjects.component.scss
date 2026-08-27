@@ -1,0 +1,56 @@
+.toolbar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+}
+
+.action-col {
+  width: 80px;
+  text-align: right;
+}
+
+.btn-delete {
+  background: transparent;
+  border: none;
+  color: var(--status-overdue);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  
+  &:hover {
+    background: var(--status-overdue-bg);
+  }
+}
+
+.add-bar {
+  margin-top: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+
+  h3 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+}
+
+.add-form {
+  display: flex;
+  gap: 12px;
+
+  .flex-grow {
+    flex: 1;
+    max-width: 400px;
+  }
+}

@@ -1,0 +1,170 @@
+:root {
+  --bg-page: #F6FAF6;
+  --surface: #FFFFFF;
+  --surface-accent: #DFF3EC;
+
+  --accent: #2E9E86;
+  --accent-hover: #268a75;
+  --accent-text: #0F6E56;
+
+  --text-primary: #1F2A24;
+  --text-secondary: #5B6B62;
+  --text-muted: #8A968E;
+
+  --border: #E1EAE4;
+  --border-strong: #C9D6CD;
+
+  --status-paid: #639922;
+  --status-paid-bg: #EAF3DE;
+  --status-partial: #BA7517;
+  --status-partial-bg: #FAEEDA;
+  --status-overdue: #A32D2D;
+  --status-overdue-bg: #FCEBEB;
+  --status-unpaid: #888780;
+  --status-unpaid-bg: #F1EFE8;
+
+  --radius: 8px;
+  --radius-lg: 12px;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg-page: #0E1A15;
+  --surface: #16261F;
+  --surface-accent: #1E3328;
+
+  --accent: #3FBFA0;
+  --accent-hover: #4ECFAF;
+  --accent-text: #7BE0C4;
+
+  --text-primary: #EAF3EE;
+  --text-secondary: #9FB3A8;
+  --text-muted: #6C7D73;
+
+  --border: #22352C;
+  --border-strong: #2E4438;
+
+  --status-paid: #97C459;
+  --status-paid-bg: #1E3328;
+  --status-partial: #FAC775;
+  --status-partial-bg: #3A2A0F;
+  --status-overdue: #F09595;
+  --status-overdue-bg: #3D1A1A;
+  --status-unpaid: #B4B2A9;
+  --status-unpaid-bg: #2A2A28;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.page-header {
+  margin-bottom: 20px;
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; color: var(--text-primary); }
+}
+.page-subtitle { font-size: 13px; color: var(--text-secondary); margin: 0; }
+
+.state-message {
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 24px;
+  text-align: center;
+}
+.state-error { color: var(--status-overdue); }
+
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  th, td { padding: 12px 16px; text-align: left; }
+  th { color: var(--text-secondary); font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--border); }
+  td { border-bottom: 1px solid var(--border); color: var(--text-primary); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-accent); }
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 9px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  &:hover { background: var(--accent-hover); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  padding: 9px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  &:hover { background: var(--surface-accent); }
+}
+.text-input {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 14px;
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+// Global print isolation.
+//
+// This is intentionally NOT in a component .scss file: Angular's emulated
+// view encapsulation scopes component styles to that component's own DOM
+// (via an auto-generated attribute selector), so a `@media print` rule
+// written inside e.g. report-card.component.scss can only ever affect
+// elements rendered by ReportCardComponent itself. It can never reach the
+// sidebar/topbar, because those live in a sibling ShellComponent. That
+// mismatch was the root cause of "printing the whole page" — the print
+// rule that hid the nav never actually applied to the nav.
+//
+// The fix: a global, unscoped rule that hides everything on the page by
+// default when printing, then reveals only whatever is marked as printable
+// content, regardless of which component it came from.
+//
+// Usage: wrap the printable content of a page in a container with the
+// class "print-area". Everything else (sidebar, topbar, toolbars, filters,
+// buttons, etc.) is hidden automatically — no need to sprinkle "no-print"
+// on every surrounding element, though existing "no-print" classes still
+// work fine alongside this.
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+}

@@ -1,0 +1,32 @@
+<app-fees-nav />
+<div class="page-header">
+  <h1>Defaulters</h1>
+  <p class="page-subtitle">Students with at least one overdue month, sorted by how far behind they are.</p>
+</div>
+
+@if (loading()) {
+  <p class="state-message">Loading...</p>
+} @else if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+} @else if (defaulters().length === 0) {
+  <p class="state-message">No defaulters right now — everyone's caught up.</p>
+} @else {
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr><th>Student</th><th>Class</th><th>Father's mobile</th><th>Overdue months</th><th>Total outstanding</th></tr>
+      </thead>
+      <tbody>
+        @for (d of defaulters(); track d.studentId) {
+          <tr>
+            <td>{{ d.studentName }}</td>
+            <td>{{ d.className }}</td>
+            <td><a [href]="telHref(d.fatherMobile)" class="phone-link">{{ d.fatherMobile }}</a></td>
+            <td><span class="overdue-badge">{{ d.overdueMonthsCount }}</span></td>
+            <td>Rs {{ d.totalOutstanding | number }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

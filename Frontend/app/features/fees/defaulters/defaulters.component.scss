@@ -1,0 +1,11 @@
+.phone-link { color: var(--accent-text); text-decoration: none; }
+.phone-link:hover { text-decoration: underline; }
+
+.overdue-badge {
+  background: var(--status-overdue-bg);
+  color: var(--status-overdue);
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 12px;
+}

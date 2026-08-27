@@ -1,0 +1,131 @@
+<section class="dashboard-page">
+  <div class="dashboard-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">School Management Portal</p>
+      <h1>Dashboard</h1>
+      <p class="hero-subtitle">
+        A quick view of student enrollment, fee collection and today's attendance.
+      </p>
+    </div>
+
+    <div class="hero-logo" aria-hidden="true">
+      <img src="/school-logo.png" alt="" />
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-card">
+      <div class="loading-line loading-title"></div>
+      <div class="loading-line"></div>
+      <div class="loading-line"></div>
+    </div>
+  } @else if (error()) {
+    <div class="error-card">
+      <div>
+        <strong>Dashboard unavailable</strong>
+        <p>{{ error() }}</p>
+      </div>
+      <button class="btn-secondary" type="button" (click)="loadDashboard()">Retry</button>
+    </div>
+  } @else if (summary(); as data) {
+    <div class="kpi-grid">
+      <article class="kpi-card">
+        <div class="kpi-icon icon-students">
+          <ng-icon name="tablerUsers"></ng-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Total Active Students</span>
+          <strong class="kpi-value">{{ data.totalActiveStudents | number }}</strong>
+          <span class="kpi-note">Currently admitted</span>
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon icon-challans">
+          <ng-icon name="tablerReceipt"></ng-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Fee Challans</span>
+          <strong class="kpi-value">{{ data.feeChallansGeneratedThisMonth | number }}</strong>
+          <span class="kpi-note">Generated this month</span>
+        </div>
+      </article>
+
+      <article class="kpi-card kpi-card-wide">
+        <div class="kpi-icon icon-collected">
+          <ng-icon name="tablerReceipt"></ng-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Fee Amount Collected</span>
+          <strong class="kpi-value">{{ formatCurrency(data.feeAmountCollectedThisMonth) }}</strong>
+          <span class="kpi-note">Payments received this month</span>
+        </div>
+      </article>
+    </div>
+
+    <section class="attendance-card">
+      <div class="section-heading">
+        <div>
+          <div class="heading-row">
+            <h2>Class-Wise Attendance</h2>
+            <span class="date-pill">{{ formatAttendanceDate(data.attendanceDate) }}</span>
+          </div>
+          <p>Today's attendance status across every active class.</p>
+        </div>
+
+        <div class="legend">
+          <span><i class="legend-dot present"></i>Present</span>
+          <span><i class="legend-dot absent"></i>Absent</span>
+          <span><i class="legend-dot unmarked"></i>Unmarked</span>
+        </div>
+      </div>
+
+      <div class="attendance-table-wrap">
+        <table class="attendance-table">
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th class="number-cell">Total</th>
+              <th class="number-cell present-head">Present</th>
+              <th class="number-cell absent-head">Absent</th>
+              <th class="number-cell unmarked-head">Unmarked</th>
+              <th class="number-cell other-head">Leave / Late</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of data.attendance; track trackClass($index, row)) {
+              <tr>
+                <td class="class-name">{{ row.className }}</td>
+                <td class="number-cell total-cell">{{ row.totalStudents }}</td>
+                <td class="number-cell">
+                  <span class="attendance-number present-number">{{ row.present }}</span>
+                </td>
+                <td class="number-cell">
+                  <span class="attendance-number absent-number">{{ row.absent }}</span>
+                </td>
+                <td class="number-cell">
+                  <span class="attendance-number unmarked-number">{{ row.unmarked }}</span>
+                </td>
+                <td class="number-cell">
+                  <span class="attendance-number other-number">{{ row.otherMarked }}</span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="empty-state">No classes configured for the current academic year.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="attendance-note">
+        <ng-icon name="tablerCalendarCheck"></ng-icon>
+        <span>
+          Unmarked means no attendance record exists for the student today.
+          Leave and Late remain separate so the dashboard never mislabels an attendance status.
+        </span>
+      </div>
+    </section>
+  }
+</section>

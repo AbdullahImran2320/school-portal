@@ -1,0 +1,16 @@
+<div class="shell">
+  <app-sidebar />
+  <div class="shell-main">
+    <app-topbar />
+    <main class="shell-content">
+      @if (licenseStatus?.showWarning) {
+        <app-license-warning
+          [daysRemaining]="licenseStatus?.daysRemaining ?? 0"
+          [message]="licenseStatus?.message ?? ''"
+        />
+      }
+      <router-outlet />
+    </main>
+  </div>
+  <div class="developer-credit" aria-label="Developer credit">Developed by: <span>Rana Abdullah</span></div>
+</div>

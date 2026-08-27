@@ -1,0 +1,89 @@
+<app-fees-nav />
+<div class="page-header">
+  <h1>Fee Structure</h1>
+  <p class="page-subtitle">Edit rates per class. Changes only apply going forward — students already have their fees generated for the current year.</p>
+</div>
+
+<div class="toolbar">
+  <label>Class
+    <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); onClassChange()" class="text-input">
+      @for (cls of classes(); track cls.classId) { <option [ngValue]="cls.classId">{{ cls.className }}</option> }
+    </select>
+  </label>
+</div>
+
+@if (error()) { <p class="state-message state-error">{{ error() }}</p> }
+
+@if (loading()) {
+  <p class="state-message">Loading...</p>
+} @else {
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr><th>Component</th><th>Frequency</th><th>Amount</th><th>Year</th>@if (isAdmin()) { <th></th> }</tr>
+      </thead>
+      <tbody>
+        @for (c of components(); track c.feeComponentId) {
+          <tr>
+            <td>{{ c.componentName }}</td>
+            <td>
+              @if (editingId() === c.feeComponentId) {
+                <select [ngModel]="editFrequency()" (ngModelChange)="editFrequency.set($event)" class="text-input">
+                  @for (f of frequencies; track f) { <option [ngValue]="f">{{ f }}</option> }
+                </select>
+              } @else { {{ c.frequency }} }
+            </td>
+            <td>
+              @if (editingId() === c.feeComponentId) {
+                <input type="number" [ngModel]="editAmount()" (ngModelChange)="editAmount.set($event)" class="text-input amount-input" />
+              } @else { Rs {{ c.amount | number }} }
+            </td>
+            <td>{{ c.academicYear }}</td>
+            @if (isAdmin()) {
+              <td class="actions-cell">
+                @if (editingId() === c.feeComponentId) {
+                  <button class="btn-secondary btn-sm" (click)="cancelEdit()">Cancel</button>
+                  <button class="btn-primary btn-sm" (click)="saveEdit(c)">Save</button>
+                } @else {
+                  <button class="btn-secondary btn-sm" (click)="startEdit(c)">Edit</button>
+                  <button class="btn-secondary btn-sm btn-danger" (click)="deleteComponent(c)">Delete</button>
+                }
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (isAdmin()) {
+    <div class="section-card">
+      @if (!addingNew()) {
+        <button class="btn-secondary" (click)="addingNew.set(true)">+ Add component</button>
+      } @else {
+        <div class="add-form">
+          <input type="text" placeholder="Component name" [ngModel]="newName()" (ngModelChange)="newName.set($event)" class="text-input" />
+          <select [ngModel]="newFrequency()" (ngModelChange)="newFrequency.set($event)" class="text-input">
+            @for (f of frequencies; track f) { <option [ngValue]="f">{{ f }}</option> }
+          </select>
+          <input type="number" placeholder="Amount" [ngModel]="newAmount()" (ngModelChange)="newAmount.set($event)" class="text-input amount-input" />
+          <input type="text" placeholder="Year e.g. 2026" [ngModel]="newYear()" (ngModelChange)="newYear.set($event)" class="text-input" />
+          <button class="btn-secondary" (click)="addingNew.set(false)">Cancel</button>
+          <button class="btn-primary" (click)="submitNew()">Add</button>
+        </div>
+      }
+    </div>
+
+    <div class="section-card">
+      <h2>Roll over to a new academic year</h2>
+      <p class="page-subtitle">Copies every component from one year to another so you can adjust rates for the new session instead of starting from scratch.</p>
+      <div class="rollover-row">
+        <input type="text" [ngModel]="rolloverFrom()" (ngModelChange)="rolloverFrom.set($event)" class="text-input" placeholder="From year" />
+        <span>→</span>
+        <input type="text" [ngModel]="rolloverTo()" (ngModelChange)="rolloverTo.set($event)" class="text-input" placeholder="To year" />
+        <button class="btn-primary" (click)="submitRollover()">Roll over</button>
+      </div>
+      @if (rolloverMessage()) { <p class="rollover-result">{{ rolloverMessage() }}</p> }
+    </div>
+  }
+}

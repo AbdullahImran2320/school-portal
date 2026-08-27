@@ -1,0 +1,19 @@
+<div class="expired-page">
+  <section class="expired-card">
+    <img src="/school-logo-mark.png" alt="Bright Grammar School" />
+    <h1>License Expired</h1>
+    <p>Your School Management Portal trial or rental license has expired.</p>
+    <p>Enter a valid license key to continue using the portal.</p>
+
+    <label for="expiredKey">License key</label>
+    <input id="expiredKey" [(ngModel)]="licenseKey" placeholder="Enter your license key" autocomplete="off" />
+
+    <button [disabled]="activating || !licenseKey.trim()" (click)="activate()">
+      {{ activating ? 'Activating...' : 'Activate License' }}
+    </button>
+
+    @if (error) {
+      <div class="error">{{ error }}</div>
+    }
+  </section>
+</div>

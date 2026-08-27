@@ -1,0 +1,12 @@
+.toolbar { display: flex; gap: 16px; margin-bottom: 20px; label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-secondary); } }
+.amount-input { max-width: 110px; }
+.actions-cell { display: flex; gap: 6px; justify-content: flex-end; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-danger { color: var(--status-overdue); border-color: var(--status-overdue-bg); }
+.section-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 16px; margin-top: 16px;
+  h2 { font-size: 14px; font-weight: 600; margin: 0 0 4px; color: var(--text-primary); }
+}
+.add-form, .rollover-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+.rollover-result { margin-top: 10px; font-size: 13px; color: var(--accent-text); }

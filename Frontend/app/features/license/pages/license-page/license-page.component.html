@@ -1,0 +1,62 @@
+<div class="license-page">
+  <section class="license-card">
+    <div class="eyebrow">Bright Grammar School Portal License</div>
+    <h1>License & Trial</h1>
+
+    @if (loading) {
+      <p class="muted">Loading license status...</p>
+    } @else if (status) {
+      <div class="status-box" [class.expired]="status.isExpired">
+        <div class="status-title">
+          {{ status.isActivated ? 'License Active' : 'Free Trial' }}
+        </div>
+        <div class="days">{{ status.daysRemaining }}</div>
+        <div class="muted">
+          {{ status.isExpired ? 'license expired' : 'days remaining' }}
+        </div>
+        <p>{{ status.message }}</p>
+
+        @if (status.isTrial) {
+          <div class="dates">
+            <span>Trial started: {{ status.trialStartDate | date:'mediumDate' }}</span>
+            <span>Trial ends: {{ status.trialEndDate | date:'mediumDate' }}</span>
+          </div>
+        } @else if (status.licenseEndDate) {
+          <div class="dates">
+            <span>License ends: {{ status.licenseEndDate | date:'mediumDate' }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="activation">
+      <h2>Activate a rental license</h2>
+      <p class="muted">Enter the license key supplied by your administrator.</p>
+
+      <label for="licenseKey">License key</label>
+      <input
+        id="licenseKey"
+        [(ngModel)]="licenseKey"
+        placeholder="Enter your license key"
+        autocomplete="off"
+      />
+
+      <button
+        type="button"
+        [disabled]="activating || !licenseKey.trim()"
+        (click)="activate()"
+      >
+        {{ activating ? 'Activating...' : 'Activate License' }}
+      </button>
+
+      @if (message) {
+        <p class="success">{{ message }}</p>
+      }
+      @if (error) {
+        <p class="error">{{ error }}</p>
+      }
+    </div>
+
+    <a class="back" routerLink="/dashboard">Back to Dashboard</a>
+  </section>
+</div>

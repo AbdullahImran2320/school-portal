@@ -1,0 +1,43 @@
+.toolbar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .w-24 {
+    width: 100px;
+  }
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.details-cell {
+  font-size: 12px;
+  color: var(--text-secondary);
+  max-width: 420px;
+}
+
+.action-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--surface-accent);
+  color: var(--text-secondary);
+
+  &.action-added { background: var(--status-paid-bg); color: var(--status-paid); }
+  &.action-modified { background: var(--status-partial-bg); color: var(--status-partial); }
+  &.action-deleted { background: var(--status-overdue-bg); color: var(--status-overdue); }
+}

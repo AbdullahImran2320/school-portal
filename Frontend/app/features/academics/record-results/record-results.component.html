@@ -1,0 +1,92 @@
+<app-academics-nav />
+<div class="page-header">
+  <h1>Record Results</h1>
+</div>
+
+<div class="toolbar">
+  <label>
+    Class
+    <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); onClassChange()" class="text-input">
+      <option [ngValue]="null" disabled>— Select Class —</option>
+      @for (cls of classes(); track cls.classId) {
+        <option [ngValue]="cls.classId">{{ cls.className }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Exam
+    <select [ngModel]="selectedExamId()" (ngModelChange)="selectedExamId.set($event); onExamChange()" class="text-input">
+      <option [ngValue]="null" disabled>— Select Exam —</option>
+      @for (ex of exams(); track ex.examId) {
+        <option [ngValue]="ex.examId">{{ ex.examName }} ({{ ex.term }} {{ ex.academicYear }})</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Subject
+    <select [ngModel]="selectedSubjectId()" (ngModelChange)="selectedSubjectId.set($event); onSubjectChange()" class="text-input" [disabled]="subjects().length === 0">
+      <option [ngValue]="null" disabled>— Select Subject —</option>
+      @for (sub of subjects(); track sub.subjectId) {
+        <option [ngValue]="sub.subjectId">{{ sub.subjectName }}</option>
+      }
+    </select>
+  </label>
+</div>
+
+@if (loading()) {
+  <p class="state-message">Loading students…</p>
+} @else if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+} @else if (rows().length > 0) {
+  <div class="quick-actions">
+    <label class="global-total-label">
+      Apply Total Marks to All:
+      <input type="number" class="text-input w-20" placeholder="e.g. 100" [ngModel]="globalTotalMarks()" (ngModelChange)="globalTotalMarks.set($event)">
+      <button class="btn-secondary" (click)="applyGlobalTotal()">Apply</button>
+    </label>
+  </div>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Student Name</th>
+          <th class="w-32">Total Marks</th>
+          <th class="w-32">Obtained Marks</th>
+          <th class="w-24">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.studentId) {
+          <tr>
+            <td>{{ row.studentName }}</td>
+            <td>
+              <input type="number" class="text-input full-w" [(ngModel)]="row.totalMarks">
+            </td>
+            <td>
+              <input type="number" class="text-input full-w" [(ngModel)]="row.marksObtained" (keyup.enter)="saveResult(row)">
+            </td>
+            <td>
+              @if (row.status === 'saving') {
+                <span class="status-text text-muted">Saving...</span>
+              } @else if (row.status === 'saved') {
+                <span class="status-text text-success">Saved ✓</span>
+              } @else if (row.status === 'error') {
+                <span class="status-text text-error">Failed</span>
+                <button class="btn-secondary btn-sm ml-2" (click)="saveResult(row)">Retry</button>
+              } @else {
+                <button class="btn-primary btn-sm" (click)="saveResult(row)" [disabled]="row.marksObtained == null || row.totalMarks == null || row.totalMarks <= 0">Save</button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+} @else if (selectedClassId() && selectedExamId() && selectedSubjectId()) {
+  <p class="state-message">No students found for this class.</p>
+} @else {
+  <p class="state-message">Select a class, exam, and subject to begin recording marks.</p>
+}
