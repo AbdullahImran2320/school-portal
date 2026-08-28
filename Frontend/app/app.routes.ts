@@ -101,6 +101,11 @@ export const routes: Routes = [
   canActivate: [roleGuard(['Admin']), licenseGuard]
 },
 {
+  path: 'admin/promotion',
+  loadComponent: () => import('./features/admin/promotion/promotion.component').then(m => m.PromotionComponent),
+  canActivate: [roleGuard(['Admin']), licenseGuard]
+},
+{
   path: 'admin',
   redirectTo: 'admin/users',
   pathMatch: 'full'

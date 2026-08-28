@@ -29,3 +29,17 @@ export interface AuditLogFilter {
   from?: string;
   to?: string;
 }
+
+export interface PromoteClassesDto {
+  fromAcademicYear: string;
+  toAcademicYear: string;
+  holdBackStudentIds: number[];
+}
+
+export interface PromotionResultDto {
+  promotedCount: number;
+  graduatedCount: number;
+  heldBackCount: number;
+  alreadyProcessedCount: number;
+  errors: string[];
+}

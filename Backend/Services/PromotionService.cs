@@ -35,6 +35,13 @@ namespace SchoolPortal.API.Services
                     .Where(s => s.AdmissionStatus == AdmissionStatus.Admitted)
                     .ToListAsync();
 
+                // Running this twice for the same target year would otherwise
+                // silently duplicate every student's fee ledgers/charges, and
+                // push already-promoted students up a second grade level on
+                // top of the first run. Detect who's already been processed
+                // for ToAcademicYear (by their fee records existing) and skip
+                // them entirely — this is a once-a-year bulk action that's
+                // easy to accidentally trigger twice.
                 var targetYearNum = int.Parse(dto.ToAcademicYear);
                 var alreadyProcessedIds = (await _context.FeeLedgers
                         .Where(l => l.Year == targetYearNum)

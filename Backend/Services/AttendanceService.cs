@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
 using SchoolPortal.API.Data;
 using SchoolPortal.API.DTOs;
 using SchoolPortal.API.Models;
 
-namespace SchoolPortal.API.Services
-{
+namespace SchoolPortal.API.Services { 
 
     public class AttendanceService : IAttendanceService
     {

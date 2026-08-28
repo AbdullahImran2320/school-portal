@@ -1,0 +1,107 @@
+<app-admin-nav />
+<div class="page-header">
+  <h1>Year-End Promotion</h1>
+</div>
+
+<p class="page-intro">
+  Promotes every currently admitted student to the next class, generates their fee records for
+  the new academic year, and graduates students in the highest class. Check "Repeat this class"
+  for any student who should stay in their current class instead.
+</p>
+
+@if (error()) {
+  <div class="alert-error">{{ error() }}</div>
+}
+
+<div class="year-toolbar">
+  <label>From academic year
+    <input type="text" [ngModel]="fromAcademicYear()" (ngModelChange)="fromAcademicYear.set($event)" class="text-input" placeholder="2026" />
+  </label>
+  <label>To academic year
+    <input type="text" [ngModel]="toAcademicYear()" (ngModelChange)="toAcademicYear.set($event)" class="text-input" placeholder="2027" />
+  </label>
+</div>
+
+@if (loading()) {
+  <p class="state-message">Loading students...</p>
+} @else if (groupedByClass().length === 0) {
+  <p class="state-message">No currently admitted students found.</p>
+} @else {
+  <div class="promotion-summary">
+    <span><strong>{{ totalAdmitted() }}</strong> admitted students</span>
+    <span><strong>{{ holdBackCount() }}</strong> marked to repeat</span>
+    <span><strong>{{ toBePromotedCount() }}</strong> will be promoted or graduated</span>
+  </div>
+
+  @for (group of groupedByClass(); track group.classId) {
+    <div class="class-group">
+      <h2>{{ group.className }}</h2>
+      <div class="student-list">
+        @for (student of group.students; track student.studentId) {
+          <label class="student-row">
+            <input type="checkbox" [checked]="isHeldBack(student.studentId)" (change)="toggleHoldBack(student.studentId)" />
+            <span class="student-name">{{ student.name }}</span>
+            <span class="repeat-label">Repeat this class</span>
+          </label>
+        }
+      </div>
+    </div>
+  }
+
+  <div class="run-bar">
+    <button type="button" class="btn-primary" (click)="openConfirm()">Review &amp; Run Promotion</button>
+  </div>
+}
+
+@if (result(); as r) {
+  <div class="result-summary">
+    <h2>Promotion Complete</h2>
+    <div class="result-grid">
+      <div><span>Promoted</span><strong>{{ r.promotedCount }}</strong></div>
+      <div><span>Graduated</span><strong>{{ r.graduatedCount }}</strong></div>
+      <div><span>Held back (repeaters)</span><strong>{{ r.heldBackCount }}</strong></div>
+      @if (r.alreadyProcessedCount > 0) {
+        <div><span>Already processed</span><strong>{{ r.alreadyProcessedCount }}</strong></div>
+      }
+    </div>
+    @if (r.alreadyProcessedCount > 0) {
+      <p class="result-note">
+        {{ r.alreadyProcessedCount }} student(s) already had fee records for this academic year and were
+        skipped, to avoid duplicating them or promoting the same student twice.
+      </p>
+    }
+    @if (r.errors.length > 0) {
+      <div class="alert-error">
+        <p>Some errors occurred:</p>
+        <ul>
+          @for (err of r.errors; track err) { <li>{{ err }}</li> }
+        </ul>
+      </div>
+    }
+  </div>
+}
+
+@if (confirmOpen()) {
+  <div class="dialog-backdrop" (click)="closeConfirm()">
+    <div class="confirm-dialog" (click)="$event.stopPropagation()">
+      <h2>Confirm Promotion</h2>
+      <p>
+        This will promote <strong>{{ toBePromotedCount() }}</strong> student(s) from
+        <strong>{{ fromAcademicYear() }}</strong> to <strong>{{ toAcademicYear() }}</strong>,
+        and keep <strong>{{ holdBackCount() }}</strong> student(s) repeating their current class.
+        Students in the highest class will be marked Graduated.
+      </p>
+      <p class="confirm-warning">
+        This generates a full year of fee records for every affected student. It's safe to run
+        again by accident (already-processed students are skipped automatically), but it isn't
+        meant to be undone casually — make sure the year is correct before continuing.
+      </p>
+      <div class="confirm-actions">
+        <button type="button" class="btn-secondary" (click)="closeConfirm()">Cancel</button>
+        <button type="button" class="btn-primary" [disabled]="submitting()" (click)="runPromotion()">
+          {{ submitting() ? 'Running...' : 'Confirm & Run Promotion' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -9,6 +9,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
     <nav class="admin-nav">
       <a routerLink="/admin/users" routerLinkActive="active">Users</a>
       <a routerLink="/admin/audit-log" routerLinkActive="active">Audit Log</a>
+      <a routerLink="/admin/promotion" routerLinkActive="active">Promotion</a>
     </nav>
   `,
   styles: [`
