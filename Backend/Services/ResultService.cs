@@ -6,7 +6,7 @@ using SchoolPortal.API.Models;
 
 namespace SchoolPortal.API.Services
 {
-
+  
     public class ResultService : IResultService
     {
         private readonly SchoolPortalDbContext _context;

@@ -36,19 +36,21 @@
       </label>
 
 
-      <div class="fine-section">
-        <div class="fine-heading">Fine</div>
-        <div class="fine-presets">
-          <button type="button" [class.active]="fine() === 0" (click)="setFine(0)">No Fine (0)</button>
-          <button type="button" [class.active]="fine() === 500" (click)="setFine(500)">Low (500)</button>
-          <button type="button" [class.active]="fine() === 1000" (click)="setFine(1000)">High (1,000)</button>
-          <button type="button" [class.active]="fine() === null" (click)="setFine(null)">Automatic</button>
+      @if (target.kind === 'ledger') {
+        <div class="fine-section">
+          <div class="fine-heading">Fine</div>
+          <div class="fine-presets">
+            <button type="button" [class.active]="fine() === 0" (click)="setFine(0)">No Fine (0)</button>
+            <button type="button" [class.active]="fine() === 500" (click)="setFine(500)">Low (500)</button>
+            <button type="button" [class.active]="fine() === 1000" (click)="setFine(1000)">High (1,000)</button>
+            <button type="button" [class.active]="fine() === null" (click)="setFine(null)">Automatic</button>
+          </div>
+          <label>Fine amount (Rs)
+            <input type="number" min="0" [ngModel]="fine()" (ngModelChange)="fine.set($event); amount.set(totalPayable())" class="text-input" placeholder="Automatic" />
+          </label>
+          <div class="final-total"><span>Total Payable</span><strong>Rs {{ totalPayable() | number }}</strong></div>
         </div>
-        <label>Fine amount (Rs)
-          <input type="number" min="0" [ngModel]="fine()" (ngModelChange)="fine.set($event); amount.set(totalPayable())" class="text-input" placeholder="Automatic" />
-        </label>
-        <div class="final-total"><span>Total Payable</span><strong>Rs {{ totalPayable() | number }}</strong></div>
-      </div>
+      }
 
       <label>Amount to collect
         <div class="amount-input-row">

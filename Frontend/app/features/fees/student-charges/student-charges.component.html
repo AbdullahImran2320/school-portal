@@ -1,0 +1,45 @@
+<div class="page-header">
+  <div>
+    <h1>One-off Charges</h1>
+    @if (summary(); as s) {
+      <p class="page-subtitle">{{ s.studentName }}</p>
+    }
+  </div>
+  <a routerLink="/fees" class="btn-secondary">Back to Fee Grid</a>
+</div>
+
+@if (loading()) {
+  <p class="state-message">Loading charges...</p>
+} @else if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+} @else if (summary(); as s) {
+  @if (s.oneOffCharges.length === 0) {
+    <p class="state-message">This student has no one-off charges (admission/exam/stationery fees, etc.).</p>
+  } @else {
+    <div class="charges-list">
+      @for (charge of s.oneOffCharges; track charge.chargeId) {
+        <div class="charge-row">
+          <div class="charge-info">
+            <span class="charge-type">{{ charge.chargeType }}</span>
+            <span class="charge-status" [class]="'status-' + charge.status.toLowerCase()">{{ charge.status }}</span>
+          </div>
+          <div class="charge-amounts">
+            <span>Due: Rs {{ charge.dueAmount | number }}</span>
+            @if (charge.discountAmount > 0) {
+              <span>Discount: Rs {{ charge.discountAmount | number }}</span>
+            }
+            <span>Paid: Rs {{ charge.paidAmount | number }}</span>
+            <span class="charge-outstanding">Outstanding: Rs {{ outstanding(charge) | number }}</span>
+          </div>
+          @if (outstanding(charge) > 0) {
+            <button type="button" class="btn-primary" (click)="payCharge(charge)">Record Payment</button>
+          }
+        </div>
+      }
+    </div>
+  }
+}
+
+@if (paymentTarget(); as target) {
+  <app-payment-dialog [target]="target" (recorded)="onPaymentRecorded()" (cancelled)="closeDialog()" />
+}

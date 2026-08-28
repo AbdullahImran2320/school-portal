@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ClassesService } from '../../students/services/classes.service';
 import { FeesService } from '../services/fees.service';
@@ -14,7 +15,7 @@ const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct
 @Component({
   selector: 'app-fee-grid',
   standalone: true,
-  imports: [FormsModule, PaymentDialogComponent,DecimalPipe, FeesNavComponent, CommonModule],
+  imports: [FormsModule, PaymentDialogComponent,DecimalPipe, FeesNavComponent, CommonModule, RouterLink],
   templateUrl: './fee-grid.component.html',
   styleUrl: './fee-grid.component.scss'
 })

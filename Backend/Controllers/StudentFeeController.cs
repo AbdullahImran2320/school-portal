@@ -63,7 +63,7 @@ namespace SchoolPortal.API.Controllers
                     Status = c.Status.ToString() })
                 .ToListAsync();
 
-            return Ok(new { MonthlyLedger = ledger, OneOffCharges = charges });
+            return Ok(new { StudentName = student.Name, MonthlyLedger = ledger, OneOffCharges = charges });
         }
 
      

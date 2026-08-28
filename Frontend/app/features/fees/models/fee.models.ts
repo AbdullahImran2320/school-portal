@@ -34,6 +34,7 @@ export interface OneOffCharge {
 }
 
 export interface FeeSummary {
+  studentName: string;
   monthlyLedger: MonthCell[];
   oneOffCharges: OneOffCharge[];
 }

@@ -1,0 +1,65 @@
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.charges-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.charge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  flex-wrap: wrap;
+}
+
+.charge-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 180px;
+}
+
+.charge-type {
+  font-weight: 500;
+}
+
+.charge-status {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+
+  &.status-paid { color: var(--status-paid); background: var(--status-paid-bg); }
+  &.status-partial { color: var(--status-partial); background: var(--status-partial-bg); }
+  &.status-unpaid { color: var(--status-unpaid); background: var(--status-unpaid-bg); }
+}
+
+.charge-amounts {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.charge-outstanding {
+  color: var(--text-primary);
+  font-weight: 600;
+}

@@ -51,6 +51,11 @@ export const routes: Routes = [
   canActivate: [roleGuard(['Admin', 'Accountant']), licenseGuard]
 },
 {
+  path: 'fees/charges/:studentId',
+  loadComponent: () => import('./features/fees/student-charges/student-charges.component').then(m => m.StudentChargesComponent),
+  canActivate: [roleGuard(['Admin', 'Accountant']), licenseGuard]
+},
+{
   path: 'attendance',
   loadComponent: () => import('./features/attendance/mark-attendance/mark-attendance.component').then(m => m.MarkAttendanceComponent),
   canActivate: [roleGuard(['Admin', 'Teacher']), licenseGuard]

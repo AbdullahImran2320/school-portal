@@ -47,12 +47,18 @@
                   <span class="student-name">{{ student.studentName }}</span>
                   <span class="admission-label">Admitted: {{ student.months[0]?.monthNumber ? monthLabels[student.months[0].monthNumber - 1] : '—' }}</span>
                 </div>
-                @if (isAdmin()) {
-                  <button type="button" class="concession-btn" (click)="openConcession(student)" title="Set student-specific monthly concession">
-                    <span class="concession-icon">▣</span>
-                    <span>Concession</span>
-                  </button>
-                }
+                <div class="student-actions">
+                  @if (isAdmin()) {
+                    <button type="button" class="concession-btn" (click)="openConcession(student)" title="Set student-specific monthly concession">
+                      <span class="concession-icon">▣</span>
+                      <span>Concession</span>
+                    </button>
+                  }
+                  <a class="concession-btn" [routerLink]="['/fees/charges', student.studentId]" title="View and pay one-off charges (admission/exam/stationery fees, etc.)">
+                    <span class="concession-icon">▤</span>
+                    <span>Charges</span>
+                  </a>
+                </div>
               </div>
             </td>
             @for (label of monthLabels; track label; let monthIndex = $index) {

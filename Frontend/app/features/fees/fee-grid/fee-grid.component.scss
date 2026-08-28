@@ -102,6 +102,12 @@
   min-width: 240px;
 }
 
+.student-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .student-info {
   display: flex;
   flex-direction: column;
