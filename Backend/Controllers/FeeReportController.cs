@@ -36,7 +36,7 @@ namespace SchoolPortal.API.Controllers
             var targetYear = year ?? now.Year;
 
             var students = await _context.Students
-                .Where(s => s.ClassId == classId)
+                .Where(s => s.ClassId == classId && s.AdmissionStatus == AdmissionStatus.Admitted)
                 .Include(s => s.Class)
                 .ToListAsync();
 
@@ -89,7 +89,8 @@ namespace SchoolPortal.API.Controllers
             var ledgers = await _context.FeeLedgers
                 .Include(l => l.Student).ThenInclude(s => s.Class)
                 .Include(l => l.Student).ThenInclude(s => s.Parent)
-                .Where(l => l.Status != LedgerStatus.Paid)
+                .Where(l => l.Status != LedgerStatus.Paid &&
+                            l.Student.AdmissionStatus == AdmissionStatus.Admitted)
                 .ToListAsync();
 
             var overdue = ledgers.Where(l =>
