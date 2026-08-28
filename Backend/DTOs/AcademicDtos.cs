@@ -58,6 +58,13 @@ namespace SchoolPortal.API.DTOs
         public int TotalMarks { get; set; }
     }
 
+    public class ExistingResultDto
+    {
+        public int StudentId { get; set; }
+        public int MarksObtained { get; set; }
+        public int TotalMarks { get; set; }
+    }
+
     public class ResultDto
     {
         public int ResultId { get; set; }

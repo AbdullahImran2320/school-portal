@@ -20,6 +20,13 @@ namespace SchoolPortal.API.Controllers
             return Ok(await _resultService.RecordResultAsync(dto));
         }
 
+        [Authorize(Roles = "Admin,Teacher")]
+        [HttpGet("results/exam/{examId}/subject/{subjectId}")]
+        public async Task<ActionResult<List<ExistingResultDto>>> GetExistingResults(int examId, int subjectId)
+        {
+            return Ok(await _resultService.GetExistingResultsAsync(examId, subjectId));
+        }
+
         [HttpGet("students/{studentId}/report-card/{examId}")]
         public async Task<ActionResult<ReportCardDto>> GetReportCard(int studentId, int examId)
         {

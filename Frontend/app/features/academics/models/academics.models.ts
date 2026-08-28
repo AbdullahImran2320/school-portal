@@ -31,6 +31,12 @@ export interface RecordResultDto {
   totalMarks: number;
 }
 
+export interface ExistingResultDto {
+  studentId: number;
+  marksObtained: number;
+  totalMarks: number;
+}
+
 export interface ResultDto {
   resultId: number;
   subjectName: string;

@@ -9,5 +9,6 @@ namespace SchoolPortal.API.Services
     {
         Task<ResultDto> RecordResultAsync(RecordResultDto dto);
         Task<ReportCardDto?> GetReportCardAsync(int studentId, int examId);
+        Task<List<ExistingResultDto>> GetExistingResultsAsync(int examId, int subjectId);
     }
 }

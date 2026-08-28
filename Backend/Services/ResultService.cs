@@ -6,7 +6,7 @@ using SchoolPortal.API.Models;
 
 namespace SchoolPortal.API.Services
 {
-  
+
     public class ResultService : IResultService
     {
         private readonly SchoolPortalDbContext _context;
@@ -23,15 +23,28 @@ namespace SchoolPortal.API.Services
 
         public async Task<ResultDto> RecordResultAsync(RecordResultDto dto)
         {
-            var result = new Result
+            // A student can only have one result per (subject, exam). If one
+            // already exists, update it in place instead of inserting a
+            // second row — otherwise re-entering or correcting a mark
+            // duplicates it and silently inflates report card totals.
+            var result = await _context.Results.FirstOrDefaultAsync(r =>
+                r.StudentId == dto.StudentId &&
+                r.SubjectId == dto.SubjectId &&
+                r.ExamId == dto.ExamId);
+
+            if (result == null)
             {
-                StudentId = dto.StudentId,
-                SubjectId = dto.SubjectId,
-                ExamId = dto.ExamId,
-                MarksObtained = dto.MarksObtained,
-                TotalMarks = dto.TotalMarks
-            };
-            _context.Results.Add(result);
+                result = new Result
+                {
+                    StudentId = dto.StudentId,
+                    SubjectId = dto.SubjectId,
+                    ExamId = dto.ExamId
+                };
+                _context.Results.Add(result);
+            }
+
+            result.MarksObtained = dto.MarksObtained;
+            result.TotalMarks = dto.TotalMarks;
             await _context.SaveChangesAsync();
 
             var subject = await _context.Subjects.FindAsync(dto.SubjectId);
@@ -89,6 +102,19 @@ namespace SchoolPortal.API.Services
                 OverallPercentage = overallPercentage,
                 OverallResult = overallResult
             };
+        }
+
+        public async Task<List<ExistingResultDto>> GetExistingResultsAsync(int examId, int subjectId)
+        {
+            return await _context.Results
+                .Where(r => r.ExamId == examId && r.SubjectId == subjectId)
+                .Select(r => new ExistingResultDto
+                {
+                    StudentId = r.StudentId,
+                    MarksObtained = r.MarksObtained,
+                    TotalMarks = r.TotalMarks
+                })
+                .ToListAsync();
         }
     }
 }

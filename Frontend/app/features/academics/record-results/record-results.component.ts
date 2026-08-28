@@ -99,7 +99,7 @@ export class RecordResultsComponent implements OnInit {
       return;
     }
 
-    const newRows = this.students().map(s => ({
+    const newRows: ResultRow[] = this.students().map(s => ({
       studentId: s.studentId,
       studentName: s.name,
       marksObtained: null,
@@ -107,6 +107,26 @@ export class RecordResultsComponent implements OnInit {
       status: 'idle' as const
     }));
     this.rows.set(newRows);
+
+    // Pre-fill any marks already recorded for this exam/subject, so
+    // reopening the page (or fixing a typo) edits the existing result
+    // instead of the teacher unknowingly entering a duplicate.
+    this.academicsService.getExistingResults(examId, subjectId).subscribe({
+      next: existing => {
+        if (existing.length === 0) return;
+        const byStudent = new Map(existing.map(e => [e.studentId, e]));
+        this.rows.update(rs => rs.map(r => {
+          const match = byStudent.get(r.studentId);
+          return match
+            ? { ...r, marksObtained: match.marksObtained, totalMarks: match.totalMarks, status: 'saved' as const }
+            : r;
+        }));
+      },
+      error: () => {
+        // Non-fatal: the teacher can still enter marks fresh; saveResult()
+        // now upserts server-side regardless of whether this lookup worked.
+      }
+    });
   }
 
   applyGlobalTotal() {

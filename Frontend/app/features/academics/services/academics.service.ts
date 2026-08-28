@@ -4,7 +4,8 @@ import { environment } from '../../../../environments/environment';
 import { 
   SubjectDto, CreateSubjectDto, 
   ExamDto, CreateExamDto, 
-  RecordResultDto, ResultDto, ReportCardDto 
+  RecordResultDto, ResultDto, ReportCardDto,
+  ExistingResultDto
 } from '../models/academics.models';
 
 @Injectable({ providedIn: 'root' })
@@ -49,5 +50,9 @@ export class AcademicsService {
 
   getReportCard(studentId: number, examId: number) {
     return this.http.get<ReportCardDto>(`${this.baseUrl}/students/${studentId}/report-card/${examId}`);
+  }
+
+  getExistingResults(examId: number, subjectId: number) {
+    return this.http.get<ExistingResultDto[]>(`${this.baseUrl}/results/exam/${examId}/subject/${subjectId}`);
   }
 }
