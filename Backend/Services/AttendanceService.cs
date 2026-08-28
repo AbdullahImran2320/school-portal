@@ -1,10 +1,10 @@
-﻿
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SchoolPortal.API.Data;
 using SchoolPortal.API.DTOs;
 using SchoolPortal.API.Models;
 
-namespace SchoolPortal.API.Services { 
+namespace SchoolPortal.API.Services
+{
 
     public class AttendanceService : IAttendanceService
     {
@@ -48,7 +48,9 @@ namespace SchoolPortal.API.Services {
         public async Task<List<ClassAttendanceRowDto>> GetClassAttendanceForDateAsync(int classId, DateTime date)
         {
             var dateOnly = date.Date;
-            var students = await _context.Students.Where(s => s.ClassId == classId).ToListAsync();
+            var students = await _context.Students
+                .Where(s => s.ClassId == classId && s.AdmissionStatus == AdmissionStatus.Admitted)
+                .ToListAsync();
             var marks = await _context.Attendances
                 .Where(a => a.Date == dateOnly && students.Select(s => s.StudentId).Contains(a.StudentId))
                 .ToDictionaryAsync(a => a.StudentId);

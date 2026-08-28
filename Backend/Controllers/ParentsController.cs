@@ -23,7 +23,20 @@ namespace SchoolPortal.API.Controllers
             return Ok(parents.Select(MapToDto).ToList());
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("search")]
+        public async Task<ActionResult<List<ParentDto>>> Search([FromQuery] string mobile)
+        {
+            if (string.IsNullOrWhiteSpace(mobile)) return Ok(new List<ParentDto>());
+
+            var parents = await _context.Parents
+                .Where(p => p.FatherMobile.Contains(mobile) ||
+                            (p.MotherMobile != null && p.MotherMobile.Contains(mobile)))
+                .ToListAsync();
+
+            return Ok(parents.Select(MapToDto).ToList());
+        }
+
+        [HttpGet("{id:int}")]
         public async Task<ActionResult<ParentDto>> GetById(int id)
         {
             var parent = await _context.Parents.FindAsync(id);

@@ -19,6 +19,7 @@ namespace SchoolPortal.API.DTOs
         public int PromotedCount { get; set; }
         public int GraduatedCount { get; set; }
         public int HeldBackCount { get; set; }
+        public int AlreadyProcessedCount { get; set; }
         public List<string> Errors { get; set; } = new();
     }
 }

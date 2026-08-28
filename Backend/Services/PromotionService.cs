@@ -35,8 +35,27 @@ namespace SchoolPortal.API.Services
                     .Where(s => s.AdmissionStatus == AdmissionStatus.Admitted)
                     .ToListAsync();
 
+                var targetYearNum = int.Parse(dto.ToAcademicYear);
+                var alreadyProcessedIds = (await _context.FeeLedgers
+                        .Where(l => l.Year == targetYearNum)
+                        .Select(l => l.StudentId)
+                        .Distinct()
+                        .ToListAsync())
+                    .Concat(await _context.StudentCharges
+                        .Where(c => c.AcademicYear == dto.ToAcademicYear)
+                        .Select(c => c.StudentId)
+                        .Distinct()
+                        .ToListAsync())
+                    .ToHashSet();
+
                 foreach (var student in students)
                 {
+                    if (alreadyProcessedIds.Contains(student.StudentId))
+                    {
+                        result.AlreadyProcessedCount++;
+                        continue;
+                    }
+
                     if (dto.HoldBackStudentIds.Contains(student.StudentId))
                     {
                         // Repeater: stays in the same class, still gets a fresh year's ledger
