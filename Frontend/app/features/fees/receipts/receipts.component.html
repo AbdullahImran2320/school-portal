@@ -1,0 +1,65 @@
+<app-fees-nav class="no-print" />
+<div class="page-header no-print">
+  <h1>Paid Receipts</h1>
+  <p class="page-subtitle">Printable receipts for payments actually received this month.</p>
+</div>
+
+<div class="toolbar no-print">
+  <label>Class
+    <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event)" class="text-input">
+      @for (cls of classes(); track cls.classId) { <option [ngValue]="cls.classId">{{ cls.className }}</option> }
+    </select>
+  </label>
+  <label>Month
+    <select [ngModel]="selectedMonth()" (ngModelChange)="selectedMonth.set($event)" class="text-input">
+      @for (m of monthNames; track m; let i = $index) { <option [ngValue]="i + 1">{{ m }}</option> }
+    </select>
+  </label>
+  <label>Year
+    <select [ngModel]="selectedYear()" (ngModelChange)="selectedYear.set($event)" class="text-input">
+      @for (y of yearOptions(); track y) { <option [ngValue]="y">{{ y }}</option> }
+    </select>
+  </label>
+  <button class="btn-primary load-btn" (click)="loadReceipts()">Load receipts</button>
+  @if (receipts().length > 0) { <button class="btn-secondary" (click)="printAll()">Print all</button> }
+</div>
+
+@if (loading()) { <p class="state-message no-print">Loading...</p> }
+@if (error()) { <p class="state-message state-error no-print">{{ error() }}</p> }
+@if (!loading() && !error() && receipts().length === 0) {
+  <p class="state-message no-print">No payments recorded for this class/month yet.</p>
+}
+
+<div class="voucher-list print-area">
+  @for (r of receipts(); track r.receiptNumber) {
+    @if (!printingOnly() || printingOnly() === r.receiptNumber) {
+    <div class="voucher-card">
+      <div class="voucher-header">
+        <div><h2>{{ r.schoolName }}</h2><p>{{ r.campusName }}</p></div>
+        <div class="voucher-meta">
+          <p>Receipt #{{ r.receiptNumber }}</p>
+          <p>Paid: {{ r.paymentDate | date:'d MMM y' }}</p>
+          <button class="btn-secondary no-print" (click)="printOne(r.receiptNumber)">Print this receipt</button>
+        </div>
+      </div>
+
+      <div class="voucher-student">
+        <div><span>Student</span><strong>{{ r.studentName }}</strong></div>
+        <div><span>Class</span><strong>{{ r.className }}</strong></div>
+        <div><span>B-Form</span><strong>{{ r.bFormNumber }}</strong></div>
+        <div><span>Father</span><strong>{{ r.fatherName }}</strong></div>
+        <div><span>Contact</span><strong>{{ r.fatherMobile }}</strong></div>
+      </div>
+
+      <table class="voucher-table">
+        <tbody>
+          <tr><td>For month</td><td>{{ monthNames[r.voucherMonth - 1] }} {{ r.voucherYear }}</td></tr>
+          <tr><td>Payment method</td><td>{{ r.paymentMethod }}</td></tr>
+          <tr><td>Collected by</td><td>{{ r.collectedBy }}</td></tr>
+          <tr class="total-row"><td>Amount paid</td><td>Rs {{ r.amountPaid | number }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    }
+  }
+</div>

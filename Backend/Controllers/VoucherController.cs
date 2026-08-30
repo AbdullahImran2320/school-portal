@@ -105,5 +105,46 @@ namespace SchoolPortal.API.Controllers
             }
             return Ok(vouchers);
         }
+
+        // Paid receipts — one per actual payment transaction against that
+        // month's ledger, not one per student. A student who paid in two
+        // installments gets two receipts, matching what really happened.
+        [HttpGet("classes/{classId}/receipts")]
+        public async Task<ActionResult<List<PaidReceiptDto>>> GetClassReceipts(int classId, [FromQuery] int month, [FromQuery] int year)
+        {
+            var payments = await _context.Payments
+                .Include(p => p.Ledger).ThenInclude(l => l!.Student).ThenInclude(s => s.Class)
+                .Include(p => p.Ledger).ThenInclude(l => l!.Student).ThenInclude(s => s.Parent)
+                .Where(p => p.Ledger != null
+                         && p.Ledger.MonthNumber == month
+                         && p.Ledger.Year == year
+                         && p.Ledger.Student.ClassId == classId)
+                .OrderBy(p => p.PaymentDate)
+                .ToListAsync();
+
+            var schoolName = _config["SchoolSettings:SchoolName"] ?? "";
+            var campusName = _config["SchoolSettings:CampusName"] ?? "";
+
+            var receipts = payments.Select(p => new PaidReceiptDto
+            {
+                SchoolName = schoolName,
+                CampusName = campusName,
+                ReceiptNumber = p.ReceiptNumber,
+                PaymentDate = p.PaymentDate,
+                PaymentMethod = p.PaymentMethod,
+                CollectedBy = p.CollectedBy,
+                StudentId = p.Ledger!.Student.StudentId,
+                StudentName = p.Ledger.Student.Name,
+                BFormNumber = p.Ledger.Student.BFormNumber,
+                ClassName = p.Ledger.Student.Class?.ClassName ?? "",
+                FatherName = p.Ledger.Student.Parent?.FatherName ?? "",
+                FatherMobile = p.Ledger.Student.Parent?.FatherMobile ?? "",
+                VoucherMonth = p.Ledger.MonthNumber,
+                VoucherYear = p.Ledger.Year,
+                AmountPaid = p.AmountPaid
+            }).ToList();
+
+            return Ok(receipts);
+        }
     }
 }

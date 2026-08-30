@@ -116,14 +116,21 @@ namespace SchoolPortal.API.Services
                 // change a month that's already Paid or Partial, since that would
                 // silently alter money that's already been collected and recorded.
                 var now = DateTime.Now;
-                var unpaidFutureMonths = _context.FeeLedgers.Where(l =>
+                var candidateMonths = await _context.FeeLedgers.Where(l =>
                     l.StudentId == studentId &&
                     l.Year == now.Year &&
                     l.MonthNumber >= now.Month &&
-                    FeeCalculator.IsApplicableMonth(student.AdmissionDate, l.MonthNumber, l.Year) &&
-                    l.Status == LedgerStatus.Unpaid);
+                    l.Status == LedgerStatus.Unpaid)
+                    .ToListAsync();
 
-                await unpaidFutureMonths.ForEachAsync(l => l.DiscountAmount = amount);
+                var unpaidFutureMonths = candidateMonths
+                    .Where(l => FeeCalculator.IsApplicableMonth(student.AdmissionDate, l.MonthNumber, l.Year))
+                    .ToList();
+
+                foreach (var l in unpaidFutureMonths)
+                {
+                    l.DiscountAmount = amount;
+                }
                 await _context.SaveChangesAsync();
             }
 

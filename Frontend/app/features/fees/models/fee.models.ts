@@ -117,3 +117,21 @@ export interface FeeVoucher {
   outstandingCharges: VoucherCharge[];
   totalAmountDue: number;
 }
+
+export interface PaidReceipt {
+  schoolName: string;
+  campusName: string;
+  receiptNumber: string;
+  paymentDate: string;
+  paymentMethod: string;
+  collectedBy: string;
+  studentId: number;
+  studentName: string;
+  bFormNumber: string;
+  className: string;
+  fatherName: string;
+  fatherMobile: string;
+  voucherMonth: number;
+  voucherYear: number;
+  amountPaid: number;
+}

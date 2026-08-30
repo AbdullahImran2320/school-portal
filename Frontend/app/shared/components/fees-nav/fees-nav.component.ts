@@ -12,6 +12,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       <a routerLink="/fees/defaulters" routerLinkActive="active">Defaulters</a>
       <a routerLink="/fees/components" routerLinkActive="active">Fee Structure</a>
       <a routerLink="/fees/vouchers" routerLinkActive="active">Vouchers</a>
+      <a routerLink="/fees/receipts" routerLinkActive="active">Receipts</a>
     </nav>
   `,
   styles: [`

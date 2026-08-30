@@ -33,11 +33,12 @@ namespace SchoolPortal.API.Controllers
             if (student == null) return NotFound();
 
             var now = DateTime.Now;
-            var ledgerEntities = await _context.FeeLedgers
-                .Where(f => f.StudentId == studentId &&
-                            FeeCalculator.IsApplicableMonth(student.AdmissionDate, f.MonthNumber, f.Year))
-                .OrderBy(f => f.MonthNumber)
-                .ToListAsync();
+            var ledgerEntities = (await _context.FeeLedgers
+                .Where(f => f.StudentId == studentId)
+                .ToListAsync())
+            .Where(f => FeeCalculator.IsApplicableMonth(student.AdmissionDate, f.MonthNumber, f.Year))
+            .OrderBy(f => f.MonthNumber)
+            .ToList();
 
             var ledger = ledgerEntities.Select(f => new
             {

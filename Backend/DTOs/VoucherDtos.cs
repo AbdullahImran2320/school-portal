@@ -31,5 +31,28 @@ namespace SchoolPortal.API.DTOs
 
         public List<VoucherChargeLineDto> OutstandingCharges { get; set; } = new();
         public decimal TotalAmountDue { get; set; }
+
+       
+    }
+
+    public class PaidReceiptDto
+    {
+        public string SchoolName { get; set; } = string.Empty;
+        public string CampusName { get; set; } = string.Empty;
+        public string ReceiptNumber { get; set; } = string.Empty;
+        public DateTime PaymentDate { get; set; }
+        public string PaymentMethod { get; set; } = string.Empty;
+        public string CollectedBy { get; set; } = string.Empty;
+
+        public int StudentId { get; set; }
+        public string StudentName { get; set; } = string.Empty;
+        public string BFormNumber { get; set; } = string.Empty;
+        public string ClassName { get; set; } = string.Empty;
+        public string FatherName { get; set; } = string.Empty;
+        public string FatherMobile { get; set; } = string.Empty;
+
+        public int VoucherMonth { get; set; }
+        public int VoucherYear { get; set; }
+        public decimal AmountPaid { get; set; }
     }
 }
