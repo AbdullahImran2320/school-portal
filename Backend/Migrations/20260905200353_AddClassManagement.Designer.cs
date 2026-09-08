@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SchoolPortal.API.Data;
 
@@ -10,9 +11,11 @@ using SchoolPortal.API.Data;
 namespace SchoolPortal.API.Migrations
 {
     [DbContext(typeof(SchoolPortalDbContext))]
-    partial class SchoolPortalDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260905200353_AddClassManagement")]
+    partial class AddClassManagement
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.30");
@@ -77,37 +80,6 @@ namespace SchoolPortal.API.Migrations
                     b.HasKey("AuditLogId");
 
                     b.ToTable("AuditLogs");
-                });
-
-            modelBuilder.Entity("SchoolPortal.API.Models.ChallanSettings", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("AccountTitle")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("BankName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PaymentTermsLine1")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PaymentTermsLine2")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ChallanSettings");
                 });
 
             modelBuilder.Entity("SchoolPortal.API.Models.Exam", b =>

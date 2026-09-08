@@ -1,0 +1,34 @@
+<app-admin-nav />
+<div class="page-header">
+  <h1>Challan Settings</h1>
+  <p class="page-subtitle">Bank details and payment terms printed on every fee challan.</p>
+</div>
+
+@if (loading()) {
+  <p class="state-message">Loading...</p>
+} @else {
+  @if (error()) { <p class="state-message state-error">{{ error() }}</p> }
+
+  <div class="table-card settings-form">
+    <label>Account Title
+      <input class="text-input" [ngModel]="accountTitle()" (ngModelChange)="accountTitle.set($event)" />
+    </label>
+    <label>Bank Name
+      <input class="text-input" [ngModel]="bankName()" (ngModelChange)="bankName.set($event)" />
+    </label>
+    <label>Account Number
+      <input class="text-input" [ngModel]="accountNumber()" (ngModelChange)="accountNumber.set($event)" />
+    </label>
+    <label>Payment Terms — line 1
+      <input class="text-input" [ngModel]="paymentTermsLine1()" (ngModelChange)="paymentTermsLine1.set($event)" />
+    </label>
+    <label>Payment Terms — line 2
+      <input class="text-input" [ngModel]="paymentTermsLine2()" (ngModelChange)="paymentTermsLine2.set($event)" />
+    </label>
+
+    <div class="form-actions">
+      <button class="btn-primary" (click)="save()" [disabled]="saving()">Save</button>
+      @if (saved()) { <span class="saved-note">Saved</span> }
+    </div>
+  </div>
+}

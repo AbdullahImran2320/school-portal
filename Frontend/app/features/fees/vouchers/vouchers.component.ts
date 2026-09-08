@@ -21,10 +21,18 @@ export class VouchersComponent implements OnInit {
   private vouchersService = inject(VouchersService);
 
   monthNames = MONTH_NAMES;
+  copyLabels = ['Bank Copy', 'School Copy', 'Parent Copy'];
+
   classes = signal<ClassDto[]>([]);
   selectedClassId = signal<number | null>(null);
   selectedMonth = signal(new Date().getMonth() + 1);
   selectedYear = signal(new Date().getFullYear());
+
+  chargeTypes = signal<string[]>([]);
+  selectedChargeType = signal<string | null>(null);
+  admissionDateFrom = signal<string | null>(null);
+  admissionDateTo = signal<string | null>(null);
+
   vouchers = signal<FeeVoucher[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
@@ -36,8 +44,20 @@ export class VouchersComponent implements OnInit {
 
   ngOnInit() {
     this.classesService.getAll().subscribe({
-      next: (data) => { this.classes.set(data); if (data.length > 0) this.selectedClassId.set(data[0].classId); },
+      next: (data) => {
+        this.classes.set(data);
+        if (data.length > 0) this.onClassChange(data[0].classId);
+      },
       error: () => this.error.set('Could not load classes.')
+    });
+  }
+
+  onClassChange(classId: number) {
+    this.selectedClassId.set(classId);
+    this.selectedChargeType.set(null);
+    this.vouchersService.getChargeTypesForClass(classId).subscribe({
+      next: (types) => this.chargeTypes.set(types),
+      error: () => this.chargeTypes.set([])
     });
   }
 
@@ -46,9 +66,13 @@ export class VouchersComponent implements OnInit {
     if (!classId) return;
     this.loading.set(true);
     this.error.set(null);
-    this.vouchersService.getClassVouchers(classId, this.selectedMonth(), this.selectedYear()).subscribe({
+    this.vouchersService.getClassVouchers(classId, this.selectedMonth(), this.selectedYear(), {
+      chargeType: this.selectedChargeType() ?? undefined,
+      admissionDateFrom: this.admissionDateFrom() ?? undefined,
+      admissionDateTo: this.admissionDateTo() ?? undefined
+    }).subscribe({
       next: (data) => { this.vouchers.set(data); this.loading.set(false); },
-      error: () => { this.error.set('Could not load vouchers for this class/month.'); this.loading.set(false); }
+      error: () => { this.error.set('Could not load challans for this class/month.'); this.loading.set(false); }
     });
   }
 

@@ -1,0 +1,30 @@
+.settings-form {
+  max-width: 480px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .text-input { width: 100%; }
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.saved-note {
+  font-size: 13px;
+  color: var(--status-paid);
+  font-weight: 500;
+}

@@ -9,6 +9,7 @@ export interface DashboardSummary {
 export interface ClassAttendanceSummary {
   classId: number;
   className: string;
+  section: string;
   totalStudents: number;
   present: number;
   absent: number;

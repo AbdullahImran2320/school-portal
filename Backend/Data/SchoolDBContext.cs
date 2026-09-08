@@ -24,6 +24,8 @@ namespace SchoolPortal.API.Data
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<LicenseInfo> LicenseInfos { get; set; }
+        public DbSet<SectionOption> SectionOptions { get; set; }
+        public DbSet<ChallanSettings> ChallanSettings { get; set; }
 
         private readonly IHttpContextAccessor? _httpContextAccessor;
 
@@ -150,6 +152,17 @@ namespace SchoolPortal.API.Data
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<User>().Property(u => u.Role).HasConversion<string>();
             modelBuilder.Entity<SchoolClass>().HasKey(c => c.ClassId);
+
+            // A class/section combo must be unique within a year — this is what
+            // actually prevents duplicates now that PromotionOrder is shared
+            // across every section of the same class (see PromotionService).
+            modelBuilder.Entity<SchoolClass>()
+                .HasIndex(c => new { c.ClassName, c.Section, c.AcademicYear })
+                .IsUnique();
+
+            modelBuilder.Entity<SectionOption>()
+                .HasIndex(s => s.Name)
+                .IsUnique();
             modelBuilder.Entity<FeeLedger>().HasKey(l => l.LedgerId);
             modelBuilder.Entity<StudentCharge>().HasKey(c => c.ChargeId);
             modelBuilder.Entity<Attendance>().Property(a => a.Status).HasConversion<string>();

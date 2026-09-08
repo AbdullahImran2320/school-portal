@@ -1,0 +1,129 @@
+<app-admin-nav />
+<div class="page-header">
+  <h1>Manage Classes</h1>
+  <p class="page-subtitle">Add or remove classes and sections for {{ academicYear() }}.</p>
+</div>
+
+@if (loading()) {
+  <p class="state-message">Loading classes…</p>
+} @else if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+} @else {
+  @if (actionError()) {
+    <p class="state-message state-error action-error">{{ actionError() }}</p>
+  }
+
+  <div class="table-card add-class-card">
+    <input
+      class="text-input"
+      placeholder="New class name, e.g. Class 11"
+      [ngModel]="newClassName()"
+      (ngModelChange)="newClassName.set($event)"
+    />
+    <button class="btn-edit" (click)="createClass()" [disabled]="addingClass() || !newClassName().trim()">
+      Add Class
+    </button>
+    <button class="btn-cancel" (click)="labelsPanelOpen.set(!labelsPanelOpen())">
+      {{ labelsPanelOpen() ? 'Hide' : 'Manage' }} Section Labels
+    </button>
+  </div>
+
+  @if (labelsPanelOpen()) {
+    <div class="table-card labels-panel">
+      <p class="page-subtitle">These are the labels available when adding a section (A, B, Red, Boys...).</p>
+      <div class="add-class-card">
+        <input
+          class="text-input"
+          placeholder="New label, e.g. Red"
+          [ngModel]="newLabelName()"
+          (ngModelChange)="newLabelName.set($event)"
+        />
+        <button class="btn-edit" (click)="addLabel()" [disabled]="addingLabel() || !newLabelName().trim()">
+          Add Label
+        </button>
+      </div>
+      <div class="label-chips">
+        @for (opt of sectionOptions(); track opt.sectionOptionId) {
+          <span class="label-chip">
+            {{ opt.name }}
+            <button class="chip-remove" (click)="deleteLabel(opt)" title="Remove from list">✕</button>
+          </span>
+        }
+        @if (sectionOptions().length === 0) {
+          <span class="state-message" style="border: none; padding: 4px 0;">No labels yet — add one above.</span>
+        }
+      </div>
+    </div>
+  }
+
+  @for (group of groups(); track group.className) {
+    <div class="table-card class-group-card">
+      <div class="group-header">
+        <h2>{{ group.className }}</h2>
+        <div class="group-actions">
+          <button class="btn-edit" (click)="openSectionForm(group)" [disabled]="availableLabelsFor()(group).length === 0">
+            Add Section
+          </button>
+          <button
+            class="btn-cancel"
+            (click)="deleteClassGroup(group)"
+            [disabled]="deletingGroup() === group.className"
+            title="Delete this class and all its sections"
+          >
+            Delete Class
+          </button>
+        </div>
+      </div>
+
+      @if (sectionFormOpenFor() === group.className) {
+        <div class="add-class-card section-form">
+          <select class="text-input" [ngModel]="newSectionName()" (ngModelChange)="newSectionName.set($event)">
+            <option [ngValue]="''" disabled>Choose a label…</option>
+            @for (opt of availableLabelsFor()(group); track opt.sectionOptionId) {
+              <option [ngValue]="opt.name">{{ opt.name }}</option>
+            }
+          </select>
+          <button class="btn-save" (click)="addSection(group)" [disabled]="addingSection() || !newSectionName()">✓</button>
+          <button class="btn-cancel" (click)="cancelSectionForm()">✕</button>
+        </div>
+      }
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Section</th>
+            <th>Students</th>
+            <th class="action-col">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of group.sections; track s.classId) {
+            <tr>
+              <td>{{ s.section || '(unsectioned)' }}</td>
+              <td>{{ s.studentCount }}</td>
+              <td class="action-col">
+                @if (s.studentCount > 0) {
+                  <span class="self-note" title="Reassign these students to another class first.">
+                    {{ s.studentCount }} student(s) — not deletable
+                  </span>
+                } @else {
+                  <button
+                    class="btn-cancel"
+                    (click)="deleteSection(s.classId, group.className + (s.section ? ' - ' + s.section : ''))"
+                    [disabled]="deletingId() === s.classId"
+                  >
+                    Delete
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (groups().length === 0) {
+    <p class="state-message">No classes for {{ academicYear() }} yet — add one above.</p>
+  }
+}

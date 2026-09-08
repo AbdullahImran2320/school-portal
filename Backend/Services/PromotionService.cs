@@ -1,4 +1,4 @@
-﻿// Services/IPromotionService.cs + PromotionService.cs
+// Services/IPromotionService.cs + PromotionService.cs
 using Microsoft.EntityFrameworkCore;
 using SchoolPortal.API.Data;
 using SchoolPortal.API.DTOs;
@@ -29,7 +29,15 @@ namespace SchoolPortal.API.Services
 
             try
             {
-                var classByOrder = await _context.Classes.ToDictionaryAsync(c => c.PromotionOrder);
+                // PromotionOrder now identifies a GRADE LEVEL, not a single row —
+                // every section of "Class 1" shares the same PromotionOrder.
+                // Group first, so "next class" means "next grade level", and a
+                // grade can have any number of sections without breaking this.
+                var allClasses = await _context.Classes.ToListAsync();
+                var classesByOrder = allClasses
+                    .GroupBy(c => c.PromotionOrder)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
                 var students = await _context.Students
                     .Include(s => s.Class)
                     .Where(s => s.AdmissionStatus == AdmissionStatus.Admitted)
@@ -71,18 +79,49 @@ namespace SchoolPortal.API.Services
                         continue;
                     }
 
-                    if (classByOrder.TryGetValue(student.Class.PromotionOrder + 1, out var nextClass))
+                    var nextOrder = student.Class.PromotionOrder + 1;
+                    if (!classesByOrder.TryGetValue(nextOrder, out var nextGradeSections) || nextGradeSections.Count == 0)
                     {
-                        student.ClassId = nextClass.ClassId;
-                        await _feeEngineService.GenerateFeeRecordsForStudentAsync(student.StudentId, nextClass.ClassId, dto.ToAcademicYear);
-                        result.PromotedCount++;
+                        // No next grade exists — this was the highest class (Class 10)
+                        student.AdmissionStatus = AdmissionStatus.Graduated;
+                        result.GraduatedCount++;
+                        continue;
+                    }
+
+                    SchoolClass? targetClass;
+
+                    if (nextGradeSections.Count == 1)
+                    {
+                        // Next grade isn't sectioned (or only has one section) —
+                        // no ambiguity, everyone goes there.
+                        targetClass = nextGradeSections[0];
                     }
                     else
                     {
-                        // No next class exists — this was the highest class (Class 10)
-                        student.AdmissionStatus = AdmissionStatus.Graduated;
-                        result.GraduatedCount++;
+                        // Multiple sections up there — only auto-promote if the
+                        // student's current section name matches one exactly.
+                        targetClass = nextGradeSections.FirstOrDefault(c =>
+                            string.Equals(c.Section, student.Class.Section, StringComparison.OrdinalIgnoreCase));
                     }
+
+                    if (targetClass == null)
+                    {
+                        // Ambiguous — leave this student exactly where they are
+                        // and flag it for the Admin to resolve manually.
+                        result.UnresolvedSections.Add(new UnresolvedPromotionDto
+                        {
+                            StudentId = student.StudentId,
+                            StudentName = student.Name,
+                            CurrentClassName = student.Class.ClassName,
+                            CurrentSection = student.Class.Section,
+                            AvailableSectionsInNextGrade = nextGradeSections.Select(c => c.Section).ToList()
+                        });
+                        continue;
+                    }
+
+                    student.ClassId = targetClass.ClassId;
+                    await _feeEngineService.GenerateFeeRecordsForStudentAsync(student.StudentId, targetClass.ClassId, dto.ToAcademicYear);
+                    result.PromotedCount++;
                 }
 
                 await _context.SaveChangesAsync();
