@@ -50,6 +50,21 @@
   color: var(--text-muted);
 }
 
+.change-password-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  cursor: pointer;
+
+  &:hover { background: var(--surface-accent); color: var(--text-primary); }
+}
+
 .logout-btn {
   display: flex;
   align-items: center;

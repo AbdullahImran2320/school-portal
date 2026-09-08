@@ -35,4 +35,22 @@ namespace SchoolPortal.API.Controllers
 
       return Ok(result);
         }
+
+        // Any authenticated role can change their own password — this is
+        // deliberately not Admin-only, since an Accountant or Teacher stuck
+        // with a seeded/default password needs a way to change it themselves
+        // without asking an Admin to do it for them.
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var (success, error) = await _authService.ChangePasswordAsync(userId, dto);
+            if (!success) return BadRequest(new { message = error });
+
+            return Ok(new { message = "Password changed successfully." });
+        }
     } }

@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { NgIcon } from '@ng-icons/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
@@ -7,7 +8,7 @@ import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [NgIcon, ThemeToggleComponent],
+  imports: [NgIcon, ThemeToggleComponent, RouterLink],
   templateUrl: './topbar.component.html',
   styleUrl: './topbar.component.scss'
 })

@@ -13,6 +13,10 @@
       <span class="user-role">{{ auth.currentUser()?.role }}</span>
     </div>
 
+    <button class="change-password-btn" routerLink="/change-password" title="Change Password">
+      <ng-icon name="tablerLock" />
+    </button>
+
     <button class="logout-btn" (click)="logout()">
       <ng-icon name="tablerLogout" />
       <span>Log out</span>

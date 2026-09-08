@@ -21,3 +21,8 @@ export interface RegisterResult {
   message: string;
   errorCode?: string;
 }
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}

@@ -89,6 +89,7 @@ builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 
 
 builder.Services.AddScoped<ILicenseService, LicenseService>();
+builder.Services.AddScoped<IBackupService, BackupService>();
 builder.Services.AddHttpClient("LicenseServer", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(10);
@@ -207,8 +208,17 @@ using (var scope = app.Services.CreateScope())
         if (existingColumns.Contains(column.Key))
             continue;
 
+        // EF1002 fires here because ExecuteSqlRawAsync can't tell that
+        // column.Key/column.Value come from the fixed dictionary literal
+        // five lines above — never from user input or any external source.
+        // SQL also doesn't support parameterizing a column name or type in
+        // an ALTER TABLE statement (only literal values can be parameters),
+        // so switching to ExecuteSqlAsync's auto-parameterization wouldn't
+        // actually apply here. Suppressed deliberately, not ignored.
+#pragma warning disable EF1002
         await db.Database.ExecuteSqlRawAsync(
             $"ALTER TABLE LicenseInfos ADD COLUMN {column.Key} {column.Value}");
+#pragma warning restore EF1002
     }
 
     await connection.CloseAsync();
@@ -337,6 +347,13 @@ using (var scope = app.Services.CreateScope())
     }
 
     db.SaveChanges();
+
+    // Runs after every seed/migration step above, so a first-run backup
+    // captures the fully-initialized database rather than a half-seeded one.
+    // Failure here is logged and swallowed (see BackupService) — a backup
+    // problem should never stop the school from opening the portal today.
+    var backupService = scope.ServiceProvider.GetRequiredService<IBackupService>();
+    await backupService.RunDailyBackupIfNeededAsync();
 }
 if (app.Environment.IsDevelopment())
 {

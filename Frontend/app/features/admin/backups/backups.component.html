@@ -1,0 +1,41 @@
+<app-admin-nav />
+<div class="page-header">
+  <h1>Backups</h1>
+  <p class="page-subtitle">A backup is created automatically once a day when the portal starts. The last 30 are kept.</p>
+</div>
+
+<div class="table-card backup-toolbar">
+  <button class="btn-primary" (click)="backupNow()" [disabled]="creating()">
+    {{ creating() ? 'Backing up…' : 'Backup Now' }}
+  </button>
+</div>
+
+@if (loading()) {
+  <p class="state-message">Loading…</p>
+} @else {
+  @if (error()) { <p class="state-message state-error">{{ error() }}</p> }
+
+  @if (backups().length === 0) {
+    <p class="state-message">No backups yet — click "Backup Now" or restart the app to create the first one.</p>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr><th>File</th><th>Created</th><th>Size</th><th class="action-col">Action</th></tr>
+      </thead>
+      <tbody>
+        @for (b of backups(); track b.fileName) {
+          <tr>
+            <td>{{ b.fileName }}</td>
+            <td>{{ b.createdAt | date:'d MMM y, h:mm a' }}</td>
+            <td>{{ formatSize(b.sizeBytes) }}</td>
+            <td class="action-col">
+              <button class="btn-edit" (click)="download(b)" [disabled]="downloadingFile() === b.fileName">
+                {{ downloadingFile() === b.fileName ? 'Downloading…' : 'Download' }}
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+}

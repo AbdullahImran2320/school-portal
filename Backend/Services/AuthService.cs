@@ -15,6 +15,7 @@ namespace SchoolPortal.API.Services
     {
         Task<LoginResultDto?> LoginAsync(LoginDto dto);
         Task<RegisterResultDto> RegisterAsync(RegisterDto dto);
+        Task<(bool Success, string? Error)> ChangePasswordAsync(int userId, ChangePasswordDto dto);
     }
 
     public class AuthService : IAuthService
@@ -92,6 +93,20 @@ namespace SchoolPortal.API.Services
                 Success = true,
                 Message = "Account created. An admin needs to approve your access before you can use the portal."
             };
+        }
+
+        public async Task<(bool Success, string? Error)> ChangePasswordAsync(int userId, ChangePasswordDto dto)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return (false, "User not found.");
+
+            var verify = _hasher.VerifyHashedPassword(user, user.PasswordHash, dto.CurrentPassword);
+            if (verify == PasswordVerificationResult.Failed)
+                return (false, "Current password is incorrect.");
+
+            user.PasswordHash = _hasher.HashPassword(user, dto.NewPassword);
+            await _context.SaveChangesAsync();
+            return (true, null);
         }
     }
 }
