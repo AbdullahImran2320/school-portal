@@ -1,5 +1,6 @@
 // Services/BackupService.cs
 using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using SchoolPortal.API.Data;
 
 namespace SchoolPortal.API.Services
