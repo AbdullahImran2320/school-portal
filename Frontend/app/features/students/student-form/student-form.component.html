@@ -148,7 +148,7 @@
         <select formControlName="classId" class="text-input">
           <option [ngValue]="null" disabled>Select a class...</option>
           @for (cls of classes(); track cls.classId) {
-            <option [ngValue]="cls.classId">{{ cls.className }}</option>
+            <option [ngValue]="cls.classId">{{ cls.className }}{{ cls.section ? ' - ' + cls.section : '' }}</option>
           }
         </select>
       </label>

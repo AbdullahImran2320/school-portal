@@ -95,7 +95,7 @@
           <tbody>
             @for (row of data.attendance; track trackClass($index, row)) {
               <tr>
-                <td class="class-name">{{ row.className }}</td>
+                <td class="class-name">{{ row.className }}{{ row.section ? ' - ' + row.section : '' }}</td>
                 <td class="number-cell total-cell">{{ row.totalStudents }}</td>
                 <td class="number-cell">
                   <span class="attendance-number present-number">{{ row.present }}</span>

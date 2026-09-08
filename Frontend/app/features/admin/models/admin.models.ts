@@ -36,10 +36,19 @@ export interface PromoteClassesDto {
   holdBackStudentIds: number[];
 }
 
+export interface UnresolvedPromotionDto {
+  studentId: number;
+  studentName: string;
+  currentClassName: string;
+  currentSection: string;
+  availableSectionsInNextGrade: string[];
+}
+
 export interface PromotionResultDto {
   promotedCount: number;
   graduatedCount: number;
   heldBackCount: number;
   alreadyProcessedCount: number;
+  unresolvedSections: UnresolvedPromotionDto[];
   errors: string[];
 }

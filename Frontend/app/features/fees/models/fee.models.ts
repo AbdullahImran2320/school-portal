@@ -116,6 +116,13 @@ export interface FeeVoucher {
   monthlyNetPayable: number;
   outstandingCharges: VoucherCharge[];
   totalAmountDue: number;
+  totalPaymentByDueDate: number;
+  totalPaymentAfterDueDate: number;
+  accountTitle: string;
+  bankName: string;
+  accountNumber: string;
+  paymentTermsLine1: string;
+  paymentTermsLine2: string;
 }
 
 export interface PaidReceipt {
@@ -134,4 +141,14 @@ export interface PaidReceipt {
   voucherMonth: number;
   voucherYear: number;
   amountPaid: number;
+  paidAgainst: string;
+  amountInWords: string;
+}
+
+export interface ChallanSettings {
+  accountTitle: string;
+  bankName: string;
+  accountNumber: string;
+  paymentTermsLine1: string;
+  paymentTermsLine2: string;
 }

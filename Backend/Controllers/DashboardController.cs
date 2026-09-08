@@ -63,6 +63,7 @@ public class DashboardController : ControllerBase
             {
                 c.ClassId,
                 c.ClassName,
+                c.Section,
                 TotalStudents = c.Students.Count(s =>
                     s.AdmissionStatus == AdmissionStatus.Admitted)
             })
@@ -99,6 +100,7 @@ public class DashboardController : ControllerBase
             {
                 ClassId = c.ClassId,
                 ClassName = c.ClassName,
+                Section = c.Section,
                 TotalStudents = c.TotalStudents,
                 Present = present,
                 Absent = absent,

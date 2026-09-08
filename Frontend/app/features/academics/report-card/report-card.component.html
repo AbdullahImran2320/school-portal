@@ -9,7 +9,7 @@
     <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); onClassChange()" class="text-input">
       <option [ngValue]="null" disabled>— Select Class —</option>
       @for (cls of classes(); track cls.classId) {
-        <option [ngValue]="cls.classId">{{ cls.className }}</option>
+        <option [ngValue]="cls.classId">{{ cls.className }}{{ cls.section ? ' - ' + cls.section : '' }}</option>
       }
     </select>
   </label>

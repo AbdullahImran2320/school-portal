@@ -9,6 +9,11 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+// The receipt has one fixed printed line per category (matching the paper
+// slip) — everything that isn't Tuition/Admission/Registration/Security
+// falls onto "Any other Fee/Fund" rather than growing the slip's layout.
+const KNOWN_CATEGORIES = ['Tuition Fee', 'Admission Fee', 'Registration Fee', 'Security'];
+
 @Component({
   selector: 'app-receipts',
   standalone: true,
@@ -58,6 +63,22 @@ export class ReceiptsComponent implements OnInit {
       next: (data) => { this.receipts.set(data); this.loading.set(false); },
       error: () => { this.error.set('Could not load receipts for this class/month.'); this.loading.set(false); }
     });
+  }
+
+  // Returns the amount to print on `category`'s line for this receipt, or
+  // null (rendered as a blank line) if this payment wasn't against it.
+  amountFor(r: PaidReceipt, category: string): number | null {
+    return r.paidAgainst === category ? r.amountPaid : null;
+  }
+
+  // "Any other Fee/Fund" catches anything that isn't one of the four fixed
+  // categories printed on the slip (e.g. Books, Uniform, Fine).
+  otherFeeAmount(r: PaidReceipt): number | null {
+    return KNOWN_CATEGORIES.includes(r.paidAgainst) ? null : r.amountPaid;
+  }
+
+  otherFeeLabel(r: PaidReceipt): string {
+    return KNOWN_CATEGORIES.includes(r.paidAgainst) ? 'Any other Fee/Fund' : r.paidAgainst;
   }
 
   printAll() {

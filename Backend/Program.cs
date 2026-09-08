@@ -48,10 +48,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// CORS is only needed in Development, when the Angular dev server (ng serve on
-// :4200) calls this API from a different origin. In production the Angular
-// build is served as same-origin static files from wwwroot, so no cross-origin
-// requests occur and no CORS policy should be active.
+
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddCors(options =>
@@ -99,10 +96,6 @@ builder.Services.AddHttpClient("LicenseServer", client =>
 
 var app = builder.Build();
 
-// In the installed desktop application, opening the executable itself should
-// be enough: once Kestrel is ready, open the default browser automatically.
-// The launcher shortcut also starts this same executable, so there is no
-// separate web-server step for the user.
 app.Lifetime.ApplicationStarted.Register(() =>
 {
     try
@@ -147,8 +140,23 @@ app.UseExceptionHandler(errorApp =>
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<SchoolPortalDbContext>();
+
+    // Migrate (not EnsureCreated) FIRST — before anything else in this block
+    // touches the database. This is what lets a future migration actually
+    // apply itself to the school's already-deployed SchoolPortal.db the next
+    // time the installed app starts, with no developer present to run
+    // `dotnet ef database update` by hand.
+    //
+    // Everything below this line assumes tables already exist. Running any
+    // of it before Migrate() causes either "no such table: AuditLogs" (on a
+    // brand-new database) or "table already exists" (once the raw SQL below
+    // creates LicenseInfos ahead of EF's own migration for it) — both were
+    // hit in practice, which is why this call sits here and nowhere else.
+    db.Database.Migrate();
+
     // Licensing table is created idempotently so an existing client database
     // receives the trial/license store without requiring EF CLI on the client machine.
+    // On a fresh database this is now a no-op — Migrate() above already created it.
     await db.Database.ExecuteSqlRawAsync("""
         CREATE TABLE IF NOT EXISTS LicenseInfos (
             Id INTEGER NOT NULL CONSTRAINT PK_LicenseInfos PRIMARY KEY AUTOINCREMENT,
@@ -208,13 +216,6 @@ using (var scope = app.Services.CreateScope())
     var licenseService = scope.ServiceProvider.GetRequiredService<ILicenseService>();
     await licenseService.InitializeAsync();
 
-    // Migrate (not EnsureCreated) — this is what lets a future migration
-    // actually apply itself to the school's already-deployed SchoolPortal.db
-    // the next time the installed app starts, with no developer present to
-    // run `dotnet ef database update` by hand.
-    db.Database.Migrate();
-
-
     if (!db.Users.Any())
     {
         var hasher = new PasswordHasher<User>();
@@ -244,6 +245,32 @@ using (var scope = app.Services.CreateScope())
         for (int i = 0; i < classNames.Length; i++)
             db.Classes.Add(new SchoolClass { ClassName = classNames[i], Section = "", AcademicYear = "2026", PromotionOrder = i + 1 });
 
+        db.SaveChanges();
+    }
+
+    if (!db.SectionOptions.Any())
+    {
+        var defaultLabels = new[] { "A", "B", "Red", "Blue", "Boys", "Girls" };
+        foreach (var label in defaultLabels)
+            db.SectionOptions.Add(new SectionOption { Name = label });
+
+        db.SaveChanges();
+    }
+
+    if (!db.ChallanSettings.Any())
+    {
+        // Seeded from the school's existing paper challan — verify the exact
+        // wording and account number against a current printed copy and
+        // correct via Admin -> Challan Settings if anything's slightly off;
+        // this is only a starting point.
+        db.ChallanSettings.Add(new ChallanSettings
+        {
+            AccountTitle = "Bright Grammar School",
+            BankName = "Bank Al Habib",
+            AccountNumber = "0254-0981-022471-01-9",
+            PaymentTermsLine1 = "A fine of Rs. 200 per day will be charged after the due date.",
+            PaymentTermsLine2 = "Students whose dues are not paid by the 25th of the month will have their name struck off from the school."
+        });
         db.SaveChanges();
     }
 

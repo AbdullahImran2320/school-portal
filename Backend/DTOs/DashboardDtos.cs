@@ -13,6 +13,7 @@ public sealed class ClassAttendanceSummaryDto
 {
     public int ClassId { get; set; }
     public string ClassName { get; set; } = string.Empty;
+    public string Section { get; set; } = string.Empty;
     public int TotalStudents { get; set; }
     public int Present { get; set; }
     public int Absent { get; set; }

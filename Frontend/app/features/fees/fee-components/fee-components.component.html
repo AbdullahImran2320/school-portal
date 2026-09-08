@@ -7,7 +7,7 @@
 <div class="toolbar">
   <label>Class
     <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); onClassChange()" class="text-input">
-      @for (cls of classes(); track cls.classId) { <option [ngValue]="cls.classId">{{ cls.className }}</option> }
+      @for (cls of classes(); track cls.classId) { <option [ngValue]="cls.classId">{{ cls.className }}{{ cls.section ? ' - ' + cls.section : '' }}</option> }
     </select>
   </label>
 </div>

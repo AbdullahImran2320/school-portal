@@ -1,0 +1,125 @@
+.action-error {
+  text-align: left;
+  padding: 10px 16px;
+  background: var(--status-overdue-bg);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+}
+
+.action-col {
+  width: 200px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.self-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.btn-edit,
+.btn-save,
+.btn-cancel {
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-edit {
+  color: var(--accent-text);
+  font-weight: 500;
+  &:hover { background: var(--surface-accent); }
+}
+
+.btn-save {
+  color: var(--status-paid);
+  font-size: 15px;
+  &:hover { background: var(--status-paid-bg); }
+}
+
+.btn-cancel {
+  color: var(--text-secondary);
+  font-size: 15px;
+  &:hover { background: var(--surface-accent); }
+}
+
+.add-class-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+
+  .text-input { flex: 1; max-width: 320px; }
+}
+
+.section-form {
+  margin: 0 0 12px;
+  padding: 10px 16px;
+  background: var(--surface-accent);
+
+  .text-input { max-width: 200px; }
+}
+
+.labels-panel {
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.label-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.label-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 12px;
+  border-radius: 30px;
+  background: var(--surface-accent);
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.chip-remove {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 50%;
+  &:hover { background: var(--status-overdue-bg); color: var(--status-overdue); }
+}
+
+.class-group-card {
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+
+  h2 { margin: 0; font-size: 15px; }
+}
+
+.group-actions {
+  display: flex;
+  gap: 8px;
+}

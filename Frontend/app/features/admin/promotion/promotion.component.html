@@ -70,6 +70,23 @@
         skipped, to avoid duplicating them or promoting the same student twice.
       </p>
     }
+    @if (r.unresolvedSections.length > 0) {
+      <div class="alert-error">
+        <p>
+          {{ r.unresolvedSections.length }} student(s) weren't promoted — their section doesn't exist
+          in the next grade, and it has more than one section, so it can't be guessed automatically.
+          Reassign their class/section manually, then re-run promotion for just those students.
+        </p>
+        <ul>
+          @for (u of r.unresolvedSections; track u.studentId) {
+            <li>
+              {{ u.studentName }} — currently {{ u.currentClassName }}{{ u.currentSection ? ' - ' + u.currentSection : '' }},
+              next grade has: {{ u.availableSectionsInNextGrade.join(', ') }}
+            </li>
+          }
+        </ul>
+      </div>
+    }
     @if (r.errors.length > 0) {
       <div class="alert-error">
         <p>Some errors occurred:</p>

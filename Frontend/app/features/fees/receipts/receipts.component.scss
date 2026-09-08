@@ -1,1 +1,60 @@
-@use './../vouchers/vouchers.component.scss';
+.toolbar { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap;
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-secondary); } }
+.load-btn { height: 37px; }
+
+.receipt-list { display: flex; flex-direction: column; gap: 20px; }
+
+.receipt-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  max-width: 420px;
+  font-size: 13px;
+}
+
+.receipt-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-bottom: 10px;
+  h2 { font-size: 15px; margin: 0; color: var(--text-primary); }
+  p { font-size: 11px; margin: 2px 0 0; color: var(--text-secondary); }
+}
+
+.receipt-fields, .receipt-lines {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+
+  td { padding: 4px 2px; border-bottom: 1px solid var(--border); }
+  .label { color: var(--text-secondary); width: 30%; }
+  .value { font-weight: 500; }
+}
+
+.receipt-lines {
+  td:first-child { width: 55%; }
+  .month-blank { text-align: center; font-style: italic; color: var(--text-secondary); }
+  .amount-blank { text-align: right; font-weight: 500; min-width: 70px; }
+  .total-row td { font-weight: 700; border-top: 2px solid var(--accent); border-bottom: none; }
+}
+
+.receipt-words {
+  font-size: 12px;
+  margin-bottom: 14px;
+  span { color: var(--text-secondary); margin-right: 6px; }
+}
+
+.receipt-signature {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 8px;
+
+  span { font-size: 11px; color: var(--text-secondary); }
+  .signature-line { width: 120px; border-bottom: 1px solid var(--text-primary); height: 1px; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .receipt-card { box-shadow: none; border: 1px solid #ccc; page-break-after: always; max-width: 100%; }
+  .receipt-list { gap: 0; }
+}

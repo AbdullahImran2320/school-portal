@@ -101,6 +101,11 @@ export const routes: Routes = [
   canActivate: [roleGuard(['Admin']), licenseGuard]
 },
 {
+  path: 'admin/classes',
+  loadComponent: () => import('./features/admin/classes/classes.component').then(m => m.ClassesComponent),
+  canActivate: [roleGuard(['Admin']), licenseGuard]
+},
+{
   path: 'admin/audit-log',
   loadComponent: () => import('./features/admin/audit-log/audit-log.component').then(m => m.AuditLogComponent),
   canActivate: [roleGuard(['Admin']), licenseGuard]
@@ -108,6 +113,11 @@ export const routes: Routes = [
 {
   path: 'admin/promotion',
   loadComponent: () => import('./features/admin/promotion/promotion.component').then(m => m.PromotionComponent),
+  canActivate: [roleGuard(['Admin']), licenseGuard]
+},
+{
+  path: 'admin/challan-settings',
+  loadComponent: () => import('./features/admin/challan-settings/challan-settings.component').then(m => m.ChallanSettingsComponent),
   canActivate: [roleGuard(['Admin']), licenseGuard]
 },
 {
