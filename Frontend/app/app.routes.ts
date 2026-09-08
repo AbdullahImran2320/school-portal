@@ -15,6 +15,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent), canActivate: [licenseGuard] },
+      { path: 'change-password', loadComponent: () => import('./features/auth/change-password/change-password.component').then(m => m.ChangePasswordComponent), canActivate: [licenseGuard] },
       {
   path: 'students',
   loadComponent: () => import('./features/students/student-list/student-list.component').then(m => m.StudentListComponent),
@@ -118,6 +119,11 @@ export const routes: Routes = [
 {
   path: 'admin/challan-settings',
   loadComponent: () => import('./features/admin/challan-settings/challan-settings.component').then(m => m.ChallanSettingsComponent),
+  canActivate: [roleGuard(['Admin']), licenseGuard]
+},
+{
+  path: 'admin/backups',
+  loadComponent: () => import('./features/admin/backups/backups.component').then(m => m.BackupsComponent),
   canActivate: [roleGuard(['Admin']), licenseGuard]
 },
 {

@@ -1,0 +1,23 @@
+.backup-toolbar {
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.action-col {
+  width: 140px;
+  text-align: right;
+}
+
+.btn-edit {
+  background: transparent;
+  border: none;
+  color: var(--accent-text);
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+
+  &:hover { background: var(--surface-accent); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { tap } from 'rxjs/operators';
-import { LoginRequest, RegisterRequest, LoginResult, RegisterResult } from '../models/auth.models';
+import { LoginRequest, RegisterRequest, LoginResult, RegisterResult, ChangePasswordRequest } from '../models/auth.models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -22,6 +22,10 @@ export class AuthService {
 
   register(data: RegisterRequest) {
     return this.http.post<RegisterResult>(`${environment.apiUrl}/auth/register`, data);
+  }
+
+  changePassword(data: ChangePasswordRequest) {
+    return this.http.post<{ message: string }>(`${environment.apiUrl}/auth/change-password`, data);
   }
 
   private loadFromStorage(): LoginResult | null {

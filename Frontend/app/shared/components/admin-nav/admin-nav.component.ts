@@ -12,6 +12,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       <a routerLink="/admin/audit-log" routerLinkActive="active">Audit Log</a>
       <a routerLink="/admin/promotion" routerLinkActive="active">Promotion</a>
       <a routerLink="/admin/challan-settings" routerLinkActive="active">Challan Settings</a>
+      <a routerLink="/admin/backups" routerLinkActive="active">Backups</a>
     </nav>
   `,
   styles: [`
