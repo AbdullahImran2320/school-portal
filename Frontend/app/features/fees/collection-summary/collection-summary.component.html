@@ -1,0 +1,59 @@
+<app-fees-nav />
+<div class="page-header">
+  <h1>Collection Summary</h1>
+  <p class="page-subtitle">Money actually collected this month, by class — grouped by when it was received, not which month's fee it covers.</p>
+</div>
+
+<div class="toolbar table-card">
+  <label>Month
+    <select [ngModel]="selectedMonth()" (ngModelChange)="selectedMonth.set($event)" class="text-input">
+      @for (m of monthNames; track m; let i = $index) { <option [ngValue]="i + 1">{{ m }}</option> }
+    </select>
+  </label>
+  <label>Year
+    <select [ngModel]="selectedYear()" (ngModelChange)="selectedYear.set($event)" class="text-input">
+      @for (y of yearOptions(); track y) { <option [ngValue]="y">{{ y }}</option> }
+    </select>
+  </label>
+  <button class="btn-primary" (click)="load()">Load</button>
+  @if (summary() && summary()!.byClass.length > 0) {
+    <button class="btn-secondary" (click)="exportToExcel()" [disabled]="exporting()">
+      {{ exporting() ? 'Exporting…' : 'Export to Excel' }}
+    </button>
+  }
+</div>
+
+@if (exportError()) { <p class="state-message state-error">{{ exportError() }}</p> }
+
+@if (loading()) {
+  <p class="state-message">Loading...</p>
+} @else if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+} @else if (summary() && summary()!.byClass.length === 0) {
+  <p class="state-message">No payments recorded for this month yet.</p>
+} @else if (summary()) {
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr><th>Class</th><th>Tuition</th><th>Other Charges</th><th>Total</th><th>Payments</th></tr>
+      </thead>
+      <tbody>
+        @for (c of summary()!.byClass; track c.className) {
+          <tr>
+            <td>{{ c.className }}</td>
+            <td>Rs {{ c.tuitionCollected | number }}</td>
+            <td>Rs {{ c.otherChargesCollected | number }}</td>
+            <td>Rs {{ c.total | number }}</td>
+            <td>{{ c.paymentsCount }}</td>
+          </tr>
+        }
+        <tr class="total-row">
+          <td>Grand Total</td>
+          <td></td><td></td>
+          <td>Rs {{ summary()!.grandTotal | number }}</td>
+          <td>{{ summary()!.totalPaymentsCount }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+}

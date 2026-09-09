@@ -4,6 +4,15 @@
   <p class="page-subtitle">Students with at least one overdue month, sorted by how far behind they are.</p>
 </div>
 
+@if (!loading() && !error() && defaulters().length > 0) {
+  <div class="table-card export-toolbar">
+    <button class="btn-secondary" (click)="exportToExcel()" [disabled]="exporting()">
+      {{ exporting() ? 'Exporting…' : 'Export to Excel' }}
+    </button>
+  </div>
+  @if (exportError()) { <p class="state-message state-error">{{ exportError() }}</p> }
+}
+
 @if (loading()) {
   <p class="state-message">Loading...</p>
 } @else if (error()) {

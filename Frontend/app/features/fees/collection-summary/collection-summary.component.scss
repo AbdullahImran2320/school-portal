@@ -1,0 +1,15 @@
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-secondary); }
+}
+
+.total-row {
+  font-weight: 700;
+  border-top: 2px solid var(--accent);
+}

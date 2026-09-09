@@ -3,6 +3,7 @@ import { FeesService } from '../services/fees.service';
 import { Defaulter } from '../models/fee.models';
 import { FeesNavComponent } from '../../../shared/components/fees-nav/fees-nav.component';
 import { DecimalPipe } from '@angular/common';
+import { downloadBlob } from '../../../shared/utils/download-file';
 
 @Component({
   selector: 'app-defaulters',
@@ -17,6 +18,8 @@ export class DefaultersComponent implements OnInit {
   defaulters = signal<Defaulter[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
+  exportError = signal<string | null>(null);
+  exporting = signal(false);
 
   ngOnInit() {
     this.feesService.getDefaulters().subscribe({
@@ -27,5 +30,20 @@ export class DefaultersComponent implements OnInit {
 
   telHref(mobile: string): string {
     return `tel:${mobile.replace(/[^\d+]/g, '')}`;
+  }
+
+  exportToExcel() {
+    this.exportError.set(null);
+    this.exporting.set(true);
+    this.feesService.exportDefaulters().subscribe({
+      next: (blob) => {
+        downloadBlob(blob, `Defaulters-${new Date().toISOString().slice(0, 10)}.xlsx`);
+        this.exporting.set(false);
+      },
+      error: () => {
+        this.exportError.set('Could not export the defaulters report.');
+        this.exporting.set(false);
+      }
+    });
   }
 }
