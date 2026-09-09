@@ -1,4 +1,4 @@
-// Services/BackupService.cs
+
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using SchoolPortal.API.Data;
@@ -71,10 +71,6 @@ namespace SchoolPortal.API.Services
             }
             catch (Exception ex)
             {
-                // A failed backup should never stop the school from using
-                // the portal today — log it and move on. The person can
-                // still trigger one manually from Admin -> Backups once
-                // whatever's wrong (e.g. a full disk) is noticed and fixed.
                 _logger.LogError(ex, "Automatic backup failed.");
             }
         }
@@ -108,6 +104,7 @@ namespace SchoolPortal.API.Services
             await source.OpenAsync();
             await destination.OpenAsync();
             source.BackupDatabase(destination);
+         
         }
 
         private void PruneOldBackups(string folder)

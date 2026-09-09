@@ -1,6 +1,13 @@
 .phone-link { color: var(--accent-text); text-decoration: none; }
 .phone-link:hover { text-decoration: underline; }
 
+.export-toolbar {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .overdue-badge {
   background: var(--status-overdue-bg);
   color: var(--status-overdue);

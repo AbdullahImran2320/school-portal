@@ -7,7 +7,7 @@ import { BackupInfo } from './backups.models';
 @Component({
   selector: 'app-backups',
   standalone: true,
-  imports: [AdminNavComponent, DatePipe, DecimalPipe],
+  imports: [AdminNavComponent, DatePipe ],
   templateUrl: './backups.component.html',
   styleUrl: './backups.component.scss'
 })

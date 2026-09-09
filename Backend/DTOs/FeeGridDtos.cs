@@ -37,4 +37,22 @@ namespace SchoolPortal.API.DTOs
         public int OverdueMonthsCount { get; set; }
         public decimal TotalOutstanding { get; set; }
     }
+
+    public class ClassCollectionDto
+    {
+        public string ClassName { get; set; } = string.Empty;
+        public decimal TuitionCollected { get; set; }
+        public decimal OtherChargesCollected { get; set; }
+        public decimal Total { get; set; }
+        public int PaymentsCount { get; set; }
+    }
+
+    public class CollectionSummaryDto
+    {
+        public int Month { get; set; }
+        public int Year { get; set; }
+        public List<ClassCollectionDto> ByClass { get; set; } = new();
+        public decimal GrandTotal { get; set; }
+        public int TotalPaymentsCount { get; set; }
+    }
 }

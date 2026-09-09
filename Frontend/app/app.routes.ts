@@ -42,6 +42,11 @@ export const routes: Routes = [
   canActivate: [roleGuard(['Admin', 'Accountant']), licenseGuard]
 },
 {
+  path: 'fees/collection-summary',
+  loadComponent: () => import('./features/fees/collection-summary/collection-summary.component').then(m => m.CollectionSummaryComponent),
+  canActivate: [roleGuard(['Admin', 'Accountant']), licenseGuard]
+},
+{
   path: 'fees/components',
   loadComponent: () => import('./features/fees/fee-components/fee-components.component').then(m => m.FeeComponentsComponent),
   canActivate: [roleGuard(['Admin', 'Accountant']), licenseGuard]

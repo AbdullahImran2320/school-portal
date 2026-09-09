@@ -76,4 +76,5 @@ export class AuditLogComponent implements OnInit {
     if (a.includes('modif')) return 'action-modified';
     return '';
   }
+  
 }

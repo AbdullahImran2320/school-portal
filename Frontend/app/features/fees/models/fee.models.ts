@@ -48,6 +48,22 @@ export interface Defaulter {
   totalOutstanding: number;
 }
 
+export interface ClassCollection {
+  className: string;
+  tuitionCollected: number;
+  otherChargesCollected: number;
+  total: number;
+  paymentsCount: number;
+}
+
+export interface CollectionSummary {
+  month: number;
+  year: number;
+  byClass: ClassCollection[];
+  grandTotal: number;
+  totalPaymentsCount: number;
+}
+
 export interface RecordPaymentRequest {
   amountPaid: number;
   paymentMethod: string;
