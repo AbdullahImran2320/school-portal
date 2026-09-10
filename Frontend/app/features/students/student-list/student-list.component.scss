@@ -121,3 +121,7 @@
 }
 
 .btn-danger { color: var(--status-overdue); }
+.header-actions {
+  display: flex;
+  gap: 8px;
+}

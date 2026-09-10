@@ -13,9 +13,16 @@ namespace SchoolPortal.API.Services
 {
     public interface IAuthService
     {
-        Task<LoginResultDto?> LoginAsync(LoginDto dto);
+        Task<LoginAttemptResult> LoginAsync(LoginDto dto);
         Task<RegisterResultDto> RegisterAsync(RegisterDto dto);
         Task<(bool Success, string? Error)> ChangePasswordAsync(int userId, ChangePasswordDto dto);
+    }
+
+    public class LoginAttemptResult
+    {
+        public LoginResultDto? Success { get; set; }
+        public bool IsLockedOut { get; set; }
+        public int LockoutMinutesRemaining { get; set; }
     }
 
     public class AuthService : IAuthService
@@ -23,20 +30,62 @@ namespace SchoolPortal.API.Services
         private readonly SchoolPortalDbContext _context;
         private readonly IConfiguration _config;
         private readonly PasswordHasher<User> _hasher = new();
+        private readonly int _maxFailedAttempts;
+        private readonly int _lockoutMinutes;
 
         public AuthService(SchoolPortalDbContext context, IConfiguration config)
         {
             _context = context;
             _config = config;
+            _maxFailedAttempts = config.GetValue<int?>("LoginSecuritySettings:MaxFailedAttempts") ?? 5;
+            _lockoutMinutes = config.GetValue<int?>("LoginSecuritySettings:LockoutMinutes") ?? 15;
         }
 
-        public async Task<LoginResultDto?> LoginAsync(LoginDto dto)
+        public async Task<LoginAttemptResult> LoginAsync(LoginDto dto)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            if (user == null) return null;
+            // A nonexistent username still goes through the exact same
+            // "invalid credentials" response as a wrong password below —
+            // this endpoint never confirms or denies that a username exists.
+            if (user == null) return new LoginAttemptResult();
+
+            if (user.LockedOutUntil.HasValue && user.LockedOutUntil.Value > DateTime.Now)
+            {
+                return new LoginAttemptResult
+                {
+                    IsLockedOut = true,
+                    LockoutMinutesRemaining = (int)Math.Ceiling((user.LockedOutUntil.Value - DateTime.Now).TotalMinutes)
+                };
+            }
 
             var verify = _hasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
-            if (verify == PasswordVerificationResult.Failed) return null;
+            if (verify == PasswordVerificationResult.Failed)
+            {
+                user.FailedLoginAttempts++;
+
+                if (user.FailedLoginAttempts >= _maxFailedAttempts)
+                {
+                    user.LockedOutUntil = DateTime.Now.AddMinutes(_lockoutMinutes);
+                    // Reset the counter now, not on next successful login —
+                    // otherwise a second lockout window later in the same day
+                    // would trigger after just one more bad attempt instead
+                    // of a fresh five, since the count never actually cleared.
+                    user.FailedLoginAttempts = 0;
+                    await _context.SaveChangesAsync();
+
+                    return new LoginAttemptResult { IsLockedOut = true, LockoutMinutesRemaining = _lockoutMinutes };
+                }
+
+                await _context.SaveChangesAsync();
+                return new LoginAttemptResult();
+            }
+
+            // Successful login clears any accumulated failed-attempt count —
+            // a few mistyped passwords followed by the right one shouldn't
+            // leave the account one bad attempt away from a lockout later.
+            user.FailedLoginAttempts = 0;
+            user.LockedOutUntil = null;
+            await _context.SaveChangesAsync();
 
             var claims = new[]
             {
@@ -56,12 +105,15 @@ namespace SchoolPortal.API.Services
                 signingCredentials: creds
             );
 
-            return new LoginResultDto
+            return new LoginAttemptResult
             {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                Username = user.Username,
-                Role = user.Role.ToString(),
-                FullName = user.FullName
+                Success = new LoginResultDto
+                {
+                    Token = new JwtSecurityTokenHandler().WriteToken(token),
+                    Username = user.Username,
+                    Role = user.Role.ToString(),
+                    FullName = user.FullName
+                }
             };
         }
         public async Task<RegisterResultDto> RegisterAsync(RegisterDto dto)

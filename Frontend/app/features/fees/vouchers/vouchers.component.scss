@@ -92,6 +92,18 @@
   letter-spacing: 0.5px;
 }
 
+// Explicit @page rules rather than relying on the browser's print
+// defaults — different browsers/printers default to different margins,
+// and three columns side by side on A4 portrait has little room to spare.
+// I couldn't physically print-test this myself, so treat these numbers as
+// a starting point: if a real printout comes out cramped or a column
+// wraps awkwardly, narrow the margins further or switch size to A4
+// landscape here.
+@page {
+  size: A4 portrait;
+  margin: 8mm;
+}
+
 @media print {
   .no-print { display: none !important; }
   .challan-sheet { page-break-after: always; border: none; }

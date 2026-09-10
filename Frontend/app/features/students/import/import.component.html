@@ -1,0 +1,59 @@
+<div class="page-header">
+  <h1>Import Students</h1>
+  <p class="page-subtitle">Bring in existing students in bulk from an Excel file — for onboarding a school that's already running, not for everyday single-student admissions.</p>
+</div>
+
+<div class="table-card import-step">
+  <h2>1. Get the template</h2>
+  <p>Use this exact column layout — required columns are marked with *.</p>
+  <button class="btn-secondary" (click)="downloadTemplate()" [disabled]="downloadingTemplate()">
+    {{ downloadingTemplate() ? 'Downloading…' : 'Download Template' }}
+  </button>
+</div>
+
+<div class="table-card import-step">
+  <h2>2. Upload the filled-in file</h2>
+  <input type="file" accept=".xlsx" (change)="onFileSelected($event)" />
+  <button class="btn-primary" (click)="runImport()" [disabled]="!selectedFile() || importing()">
+    {{ importing() ? 'Importing…' : 'Import' }}
+  </button>
+  <p class="import-note">
+    Safe to re-run: a student already imported (matched by B-Form number) is skipped, not duplicated —
+    so if some rows fail, fix just those rows in the file and upload it again.
+  </p>
+</div>
+
+@if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+}
+
+@if (result()) {
+  <div class="table-card import-summary">
+    <div class="summary-counts">
+      <span class="count imported">{{ result()!.importedCount }} imported</span>
+      <span class="count skipped">{{ result()!.skippedCount }} skipped</span>
+      <span class="count failed">{{ result()!.failedCount }} failed</span>
+      <span class="count total">{{ result()!.totalRows }} rows total</span>
+    </div>
+
+    @if (result()!.failedCount > 0 || result()!.skippedCount > 0) {
+      <table class="data-table">
+        <thead>
+          <tr><th>Row</th><th>Student</th><th>Outcome</th><th>Detail</th></tr>
+        </thead>
+        <tbody>
+          @for (r of result()!.results; track r.rowNumber) {
+            @if (r.outcome !== 'Imported') {
+              <tr [class.row-failed]="r.outcome === 'Failed'">
+                <td>{{ r.rowNumber }}</td>
+                <td>{{ r.studentName }}</td>
+                <td>{{ r.outcome }}</td>
+                <td>{{ r.detail }}</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+}

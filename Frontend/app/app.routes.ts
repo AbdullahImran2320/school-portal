@@ -27,6 +27,11 @@ export const routes: Routes = [
   canActivate: [roleGuard(['Admin']), licenseGuard]
 },
 {
+  path: 'students/import',
+  loadComponent: () => import('./features/students/import/import.component').then(m => m.StudentImportComponent),
+  canActivate: [roleGuard(['Admin']), licenseGuard]
+},
+{
   path: 'students/:id/edit',
   loadComponent: () => import('./features/students/student-form/student-form.component').then(m => m.StudentFormComponent),
   canActivate: [roleGuard(['Admin']), licenseGuard]

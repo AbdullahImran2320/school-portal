@@ -1,6 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NgIcon } from '@ng-icons/core';
 
@@ -11,14 +11,24 @@ import { NgIcon } from '@ng-icons/core';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   username = '';
   password = '';
   errorMessage = signal('');
   loading = signal(false);
+
+  ngOnInit() {
+    // Set by sessionExpiredInterceptor when a 401 bounces the user here
+    // mid-session, so it reads as "please log in again" rather than looking
+    // like the login page just rejected a login they never attempted.
+    if (this.route.snapshot.queryParamMap.get('sessionExpired')) {
+      this.errorMessage.set('Your session expired. Please log in again.');
+    }
+  }
 
   submit() {
     if (!this.username || !this.password) {
@@ -33,7 +43,14 @@ export class LoginComponent {
       next: () => this.router.navigate(['/dashboard']),
       error: (err) => {
         this.loading.set(false);
-        this.errorMessage.set(err.status === 401 ? 'Invalid username or password.' : 'Something went wrong. Try again.');
+        if (err.status === 401) {
+          this.errorMessage.set('Invalid username or password.');
+        } else if (err.status === 429) {
+          // Server message already includes the exact minutes remaining
+          this.errorMessage.set(err.error?.message ?? 'Too many failed attempts. Try again later.');
+        } else {
+          this.errorMessage.set('Something went wrong. Try again.');
+        }
       }
     });
   }

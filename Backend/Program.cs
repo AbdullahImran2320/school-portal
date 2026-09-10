@@ -65,7 +65,7 @@ if (builder.Environment.IsDevelopment())
 builder.Services.AddControllers();
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
-   
+
     options.InvalidModelStateResponseFactory = context =>
     {
         var errors = context.ModelState
@@ -89,7 +89,6 @@ builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 
 
 builder.Services.AddScoped<ILicenseService, LicenseService>();
-builder.Services.AddScoped<IBackupService, BackupService>();
 builder.Services.AddHttpClient("LicenseServer", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(10);
@@ -347,13 +346,6 @@ using (var scope = app.Services.CreateScope())
     }
 
     db.SaveChanges();
-
-    // Runs after every seed/migration step above, so a first-run backup
-    // captures the fully-initialized database rather than a half-seeded one.
-    // Failure here is logged and swallowed (see BackupService) — a backup
-    // problem should never stop the school from opening the portal today.
-    var backupService = scope.ServiceProvider.GetRequiredService<IBackupService>();
-    await backupService.RunDailyBackupIfNeededAsync();
 }
 if (app.Environment.IsDevelopment())
 {
