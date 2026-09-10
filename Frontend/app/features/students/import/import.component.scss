@@ -1,0 +1,37 @@
+.import-step {
+  padding: 16px;
+  margin-bottom: 16px;
+
+  h2 { font-size: 14px; margin: 0 0 6px; }
+  p { font-size: 13px; color: var(--text-secondary); margin: 0 0 10px; }
+
+  input[type="file"] { display: block; margin-bottom: 12px; font-size: 13px; }
+}
+
+.import-note {
+  margin-top: 10px !important;
+  font-size: 12px !important;
+}
+
+.import-summary { padding: 16px; }
+
+.summary-counts {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.count {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+
+  &.imported { background: var(--status-paid-bg); color: var(--status-paid); }
+  &.skipped { background: var(--surface-accent); color: var(--text-secondary); }
+  &.failed { background: var(--status-overdue-bg); color: var(--status-overdue); }
+  &.total { background: transparent; color: var(--text-muted); font-weight: 400; }
+}
+
+.row-failed { background: var(--status-overdue-bg); }

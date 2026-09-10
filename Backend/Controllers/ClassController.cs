@@ -151,6 +151,31 @@ namespace SchoolPortal.API.Controllers
 
             var promotionOrder = siblingRows[0].PromotionOrder;
 
+            // Copy the fee structure from an existing row so a new section
+            // isn't born with Rs 0 fees, requiring a manual re-entry every
+            // time — prefer the unsectioned placeholder (the common case:
+            // "Class 1" already has fees set up, now it's getting sections),
+            // otherwise fall back to whichever section already exists.
+            var sourceRowId = siblingRows.FirstOrDefault(c => c.Section == "")?.ClassId
+                ?? siblingRows.First().ClassId;
+
+            // Read these out BEFORE the placeholder might get deleted below —
+            // FeeComponent.ClassId is a required foreign key, so EF Core
+            // cascade-deletes a class's fee components the moment that class
+            // row is deleted. Reading first and building plain copies (not
+            // reusing the tracked entities) means the copies survive that
+            // cascade regardless of which row disappears.
+            var componentsToCopy = await _context.FeeComponents
+                .Where(f => f.ClassId == sourceRowId && f.AcademicYear == dto.AcademicYear)
+                .Select(f => new FeeComponent
+                {
+                    ComponentName = f.ComponentName,
+                    Amount = f.Amount,
+                    Frequency = f.Frequency,
+                    AcademicYear = f.AcademicYear
+                })
+                .ToListAsync();
+
             var placeholder = siblingRows.FirstOrDefault(c => c.Section == "");
             if (placeholder != null)
             {
@@ -169,6 +194,15 @@ namespace SchoolPortal.API.Controllers
 
             _context.Classes.Add(newSection);
             await _context.SaveChangesAsync();
+
+            if (componentsToCopy.Count > 0)
+            {
+                foreach (var component in componentsToCopy)
+                    component.ClassId = newSection.ClassId;
+
+                _context.FeeComponents.AddRange(componentsToCopy);
+                await _context.SaveChangesAsync();
+            }
 
             return Ok(new ClassDto
             {

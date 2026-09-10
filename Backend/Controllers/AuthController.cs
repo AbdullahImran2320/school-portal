@@ -16,9 +16,18 @@ namespace SchoolPortal.API.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<LoginResultDto>> Login(LoginDto dto)
         {
-            var result = await _authService.LoginAsync(dto);
-            if (result == null) return Unauthorized(new { message = "Invalid username or password" });
-            return Ok(result);
+            var attempt = await _authService.LoginAsync(dto);
+
+            if (attempt.IsLockedOut)
+            {
+                return StatusCode(429, new
+                {
+                    message = $"Too many failed attempts. Try again in {attempt.LockoutMinutesRemaining} minute(s)."
+                });
+            }
+
+            if (attempt.Success == null) return Unauthorized(new { message = "Invalid username or password" });
+            return Ok(attempt.Success);
         }
    
 

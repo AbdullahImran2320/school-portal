@@ -53,6 +53,11 @@
   .signature-line { width: 120px; border-bottom: 1px solid var(--text-primary); height: 1px; }
 }
 
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
+
 @media print {
   .no-print { display: none !important; }
   .receipt-card { box-shadow: none; border: 1px solid #ccc; page-break-after: always; max-width: 100%; }

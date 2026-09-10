@@ -4,7 +4,10 @@
     <p class="page-subtitle">{{ filteredStudents().length }} of {{ students().length }} students</p>
   </div>
   @if (isAdmin()) {
-    <a routerLink="/students/new" class="btn-primary">+ New Student</a>
+    <div class="header-actions">
+      <a routerLink="/students/import" class="btn-secondary">Import Students</a>
+      <a routerLink="/students/new" class="btn-primary">+ New Student</a>
+    </div>
   }
 </div>
 
