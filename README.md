@@ -1,28 +1,48 @@
 # Bright Grammar School Portal
 
-A full-stack school administration portal — student records, monthly fee ledgers,
-vouchers, concessions, fines, attendance, academics, and audit logging — built as
-a single self-contained Windows desktop application.
+A full-stack school administration portal — student records, class/section
+management, monthly fee ledgers, challans, receipts, concessions, fines,
+attendance, academics, audit logging, and automated backups — built as a
+single self-contained Windows desktop application.
 
 **Stack:** Angular 20 (standalone components, signals) · ASP.NET Core 8 Web API ·
-Entity Framework Core · SQLite · JWT authentication
+Entity Framework Core · SQLite · JWT authentication · xUnit
 
 ---
 
 ## Features
 
-- **Students & Classes** — admission records, B-Form/parent details, class/section
-  management, year-end promotion.
+- **Students & Classes** — admission records, B-Form/parent details,
+  admin-managed classes and sections (add/delete a class, add/delete a
+  section, manage the reusable section-label list), bulk student import from
+  Excel for onboarding an already-running school, year-end promotion
+  (matches students to same-named sections automatically, flags anything
+  ambiguous for manual review instead of guessing).
 - **Fees** — monthly fee grid per class, one-off charges (admission/exam/stationery
-  fees), student-level concessions, automatic + manual late fines, defaulters report.
-- **Vouchers** — per-student and per-class monthly fee vouchers, print-ready.
+  fees), student-level concessions, automatic + manual late fines, defaulters
+  report, monthly collection summary by class.
+- **Challans & Receipts** — three-copy printable fee challans (Bank/School/Parent)
+  and paid receipts matching the school's paper format, with bank details and
+  payment terms editable from Admin → Challan Settings — no redeploy needed to
+  change them. Challans can be filtered to a specific charge type or admission
+  date range.
+- **Reports** — Excel export (.xlsx) for the defaulters list and the monthly
+  collection summary.
 - **Academics** — subjects, exams, result entry, report cards with pass/fail logic.
 - **Attendance** — daily marking per class, per-student attendance history/report.
 - **Dashboard** — enrollment, fee collection, and today's attendance at a glance.
 - **Audit Log** — every create/update/delete across the system is automatically
   recorded with the acting user, timestamp, and field-level changes.
+- **Backups** — a backup is created automatically once a day when the portal
+  starts, using SQLite's own backup API (not a plain file copy, so a backup
+  never misses data sitting in an unflushed write-ahead log). The last 30 are
+  kept. Admin → Backups also allows a manual "Backup Now" and downloading any
+  past backup.
 - **Role-based access** — Admin / Accountant / Teacher, with self-registered
   accounts starting as `Pending` (no access) until an Admin approves them.
+  Any logged-in user can change their own password from the lock icon in the
+  top bar. Five failed login attempts locks the account for 15 minutes
+  (configurable in `appsettings.json` under `LoginSecuritySettings`).
 - **Licensing** — built-in trial/activation flow against a separate, privately
   hosted License Server (not part of this repo — see [Licensing](#licensing) below).
 
@@ -30,9 +50,10 @@ Entity Framework Core · SQLite · JWT authentication
 
 ```
 Bright Grammar School Portal/
-├─ Backend/     ASP.NET Core 8 Web API (SchoolPortal.API) — open in Visual Studio
-├─ Frontend/    Angular 20 standalone app — open in VS Code
-├─ docs/        Implementation notes for the dashboard and licensing subsystems
+├─ Backend/       ASP.NET Core 8 Web API (SchoolPortal.API) — open in Visual Studio
+├─ Backend.Tests/ xUnit tests for the fee-calculation and promotion logic
+├─ Frontend/      Angular 20 standalone app — open in VS Code
+├─ docs/          Implementation notes for the dashboard and licensing subsystems
 ├─ build.bat            Builds Frontend + Backend into /publish
 ├─ compile-installer.bat  Compiles the Windows installer from /publish
 ├─ installer.iss         Inno Setup script
@@ -42,7 +63,8 @@ Bright Grammar School Portal/
 In production, the compiled Angular app is served as static files directly from the
 ASP.NET Core backend (`wwwroot`) — one process, one port (`http://localhost:5000`),
 no separate web server. In development, the Angular dev server (`ng serve`, port
-4200) talks to the API over CORS instead.
+4200) talks to the API over CORS instead — browsing to `localhost:5000` directly
+during development won't work, since `wwwroot` only exists after `build.bat` runs.
 
 ## Getting started (development)
 
@@ -58,8 +80,8 @@ dotnet run
 
 The API listens on `http://localhost:5000` and applies EF Core migrations
 automatically on startup. A local `SchoolPortal.db` SQLite file is created next to
-the executable, seeded with default classes, fee components, and one login per
-role:
+the executable, seeded with default classes, section labels, fee components,
+challan settings, and one login per role:
 
 | Username     | Password        | Role       |
 |--------------|-----------------|------------|
@@ -68,7 +90,8 @@ role:
 | `teacher`    | `Teacher@123`   | Teacher    |
 
 > **Change these before any real deployment.** They exist purely so a fresh
-> checkout is usable immediately.
+> checkout is usable immediately. Once logged in, use the lock icon in the top
+> bar to set a real password for each account.
 
 Before running for real, replace the placeholder in `Backend/appsettings.json`:
 
@@ -94,6 +117,17 @@ npm start        # ng serve, http://localhost:4200
 The dev environment (`Frontend/environments/environment.ts`) points at
 `http://localhost:5000/api`.
 
+### Tests
+
+```bash
+cd Backend.Tests
+dotnet test
+```
+
+Covers `FeeCalculator` (late fees, discounts, admission-month billing rules)
+and `PromotionService` (section matching, graduation, hold-back, and safety
+against running promotion twice on the same year).
+
 ## Building the Windows installer
 
 **Additional prerequisite:** [Inno Setup 6](https://jrsoftware.org/isinfo.php).
@@ -115,6 +149,8 @@ continuing.
 - **Database:** `%ProgramData%\BrightGrammarSchoolPortal\SchoolPortal.db`
   (installer rewrites the connection string to this path on install, so
   reinstalling/upgrading never touches or deletes existing school data)
+- **Backups:** `%ProgramData%\BrightGrammarSchoolPortal\Backups\` — created
+  automatically; also downloadable from Admin → Backups inside the app.
 - **Launch:** the Start Menu/Desktop shortcuts run
   `LaunchBrightGrammarSchoolPortal.vbs`, which starts the backend and opens the
   default browser automatically, and won't start a second copy if one is already
@@ -143,10 +179,11 @@ real deployment that requires license activation.
 
 ## Backup
 
-The entire application state lives in one file:
-`%ProgramData%\BrightGrammarSchoolPortal\SchoolPortal.db`. Back this file up
-regularly (it's a plain SQLite database — safe to copy while the app is closed,
-or use the SQLite online backup API while it's running).
+Automated daily backups are built into the app itself — see
+[Features](#features) and [Runtime paths](#runtime-paths) above. As a manual
+fallback, the entire application state still lives in one file:
+`%ProgramData%\BrightGrammarSchoolPortal\SchoolPortal.db`, safe to copy while
+the app is closed, or via the SQLite online backup API while it's running.
 
 ## License
 
