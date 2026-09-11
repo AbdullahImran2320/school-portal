@@ -80,6 +80,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IStudentImportService, StudentImportService>();
 builder.Services.AddScoped<IFeeComponentRepository, FeeComponentRepository>();
 builder.Services.AddScoped<IFeeEngineService, FeeEngineService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
@@ -89,6 +90,7 @@ builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 
 
 builder.Services.AddScoped<ILicenseService, LicenseService>();
+builder.Services.AddScoped<IBackupService, BackupService>();
 builder.Services.AddHttpClient("LicenseServer", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(10);
@@ -96,21 +98,31 @@ builder.Services.AddHttpClient("LicenseServer", client =>
 
 var app = builder.Build();
 
-app.Lifetime.ApplicationStarted.Register(() =>
+// Only auto-open a browser tab in production — that's the installed,
+// self-contained build where wwwroot actually has something to serve.
+// In development, wwwroot doesn't exist at all (the real dev URL is
+// localhost:4200, the Angular dev server), so this used to open a tab
+// to localhost:5000 on every dotnet run that immediately threw a
+// FileNotFoundException — harmless, but noisy and confusing to read
+// past in the console every single time.
+if (!app.Environment.IsDevelopment())
 {
-    try
+    app.Lifetime.ApplicationStarted.Register(() =>
     {
-        Process.Start(new ProcessStartInfo
+        try
         {
-            FileName = "http://localhost:5000",
-            UseShellExecute = true
-        });
-    }
-    catch
-    {
-        // Browser launch is a convenience only; the web application remains running.
-    }
-});
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "http://localhost:5000",
+                UseShellExecute = true
+            });
+        }
+        catch
+        {
+            // Browser launch is a convenience only; the web application remains running.
+        }
+    });
+}
 
 // Serve the Angular production build (copied into wwwroot at publish time)
 // as static files. This is what lets the installer run a single process on
@@ -346,6 +358,13 @@ using (var scope = app.Services.CreateScope())
     }
 
     db.SaveChanges();
+
+    // Runs after every seed/migration step above, so a first-run backup
+    // captures the fully-initialized database rather than a half-seeded one.
+    // Failure here is logged and swallowed (see BackupService) — a backup
+    // problem should never stop the school from opening the portal today.
+    var backupService = scope.ServiceProvider.GetRequiredService<IBackupService>();
+    await backupService.RunDailyBackupIfNeededAsync();
 }
 if (app.Environment.IsDevelopment())
 {
