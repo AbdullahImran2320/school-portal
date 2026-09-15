@@ -13,7 +13,15 @@ namespace SchoolPortal.API.Services
         public async Task GenerateFeeRecordsForStudentAsync(int studentId, int classId, string academicYear)
         {
             var student = await _context.Students.FindAsync(studentId);
-            var discount = student?.MonthlyDiscountAmount ?? 0;
+            // Defense in depth: the API-facing DTO for setting a concession
+            // already rejects negative values, but this method takes a raw
+            // decimal, not that DTO — any future caller that doesn't go
+            // through the validated endpoint could otherwise store a
+            // negative discount here. A negative DiscountAmount is a real
+            // problem, not a harmless edge case: it gets SUBTRACTED in every
+            // total-due calculation, so a negative value silently ADDS to
+            // what a student owes instead of reducing it.
+            var discount = Math.Max(0, student?.MonthlyDiscountAmount ?? 0);
 
             var components = await _context.FeeComponents
                 .Where(c => c.ClassId == classId && c.AcademicYear == academicYear)

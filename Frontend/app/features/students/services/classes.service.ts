@@ -49,7 +49,14 @@ export class ClassesService {
     return this.http.post<SectionOptionDto>(`${this.baseUrl}/section-options`, dto);
   }
 
-  deleteSectionOption(id: number) {
-    return this.http.delete(`${this.baseUrl}/section-options/${id}`);
+  deleteSectionOption(sectionOptionId: number) {
+    return this.http.delete(`${this.baseUrl}/section-options/${sectionOptionId}`);
+  }
+
+  moveStudents(fromClassId: number, toClassId: number) {
+    return this.http.post<{ movedCount: number; fromLabel: string; toLabel: string }>(
+      `${this.baseUrl}/${fromClassId}/move-students`,
+      { toClassId }
+    );
   }
 }

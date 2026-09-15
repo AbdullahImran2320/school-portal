@@ -1,0 +1,50 @@
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-secondary); }
+}
+
+.register-scroll {
+  overflow-x: auto;
+  padding: 0;
+}
+
+.register-table {
+  border-collapse: collapse;
+  font-size: 12px;
+  white-space: nowrap;
+
+  th, td { padding: 6px 8px; border: 1px solid var(--border); text-align: center; }
+}
+
+.sticky-col {
+  position: sticky;
+  background: var(--surface);
+  z-index: 1;
+}
+
+.roll-col { left: 0; width: 50px; }
+.name-col { left: 50px; text-align: left !important; min-width: 140px; }
+
+.day-col { width: 28px; }
+
+.summary-col {
+  font-weight: 600;
+  background: var(--surface-accent);
+}
+
+.cell-present { color: var(--status-paid); }
+.cell-absent { color: var(--status-overdue); font-weight: 700; }
+.cell-leave { color: var(--text-muted); }
+.cell-late { color: #b8860b; }
+
+.register-legend {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}

@@ -215,6 +215,65 @@ namespace SchoolPortal.API.Controllers
             });
         }
 
+        // Moves every student out of one section and into another section of
+        // the SAME grade/year. This is the missing half of "Can't delete —
+        // N student(s) are still assigned. Reassign them first." below: it's
+        // what actually does that reassigning, in one click, for the common
+        // case of an accidentally-created or now-empty-ish section.
+        //
+        // Deliberately restricted to sibling sections (same ClassName +
+        // AcademicYear) rather than any class: that's the one case where
+        // nothing else needs to change. Fee structure is configured per
+        // grade, not per section, and this never touches already-generated
+        // FeeLedger/StudentCharge rows (they're keyed by StudentId + Year,
+        // not ClassId, so a same-grade section move doesn't invalidate
+        // anything already billed). Moving a student to a genuinely
+        // different grade is a separate action that already exists —
+        // editing that one student's Class on the Students page — since a
+        // cross-grade move can have real fee/promotion implications this
+        // bulk action intentionally stays out of.
+        [HttpPost("{fromClassId}/move-students")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<MoveStudentsResultDto>> MoveStudents(int fromClassId, MoveStudentsDto dto)
+        {
+            if (fromClassId == dto.ToClassId)
+                return BadRequest("Source and target section are the same.");
+
+            var fromClass = await _context.Classes.FindAsync(fromClassId);
+            if (fromClass == null) return NotFound($"Section {fromClassId} not found.");
+
+            var toClass = await _context.Classes.FindAsync(dto.ToClassId);
+            if (toClass == null) return NotFound($"Target section {dto.ToClassId} not found.");
+
+            if (fromClass.ClassName != toClass.ClassName || fromClass.AcademicYear != toClass.AcademicYear)
+                return BadRequest("Students can only be bulk-moved between sections of the same class and year. To move a student to a different grade, edit that student individually instead.");
+
+            var students = await _context.Students.Where(s => s.ClassId == fromClassId).ToListAsync();
+
+            foreach (var student in students)
+            {
+                student.ClassId = toClass.ClassId;
+
+                // Same rule as StudentService.UpdateStudentAsync: a roll
+                // number is tied to which class register a student appears
+                // in day to day, so it's cleared on a class change rather
+                // than silently carried over into the new section — the
+                // Admin can assign a fresh one afterward if they want.
+                student.RollNumber = null;
+            }
+
+            await _context.SaveChangesAsync();
+
+            string Label(SchoolClass c) => string.IsNullOrEmpty(c.Section) ? c.ClassName : $"{c.ClassName} - {c.Section}";
+
+            return Ok(new MoveStudentsResultDto
+            {
+                MovedCount = students.Count,
+                FromLabel = Label(fromClass),
+                ToLabel = Label(toClass)
+            });
+        }
+
         // Deletes a single row — either an unsectioned class or one section
         // of a sectioned class. Blocked while students are still assigned to it.
         [HttpDelete("{id}")]

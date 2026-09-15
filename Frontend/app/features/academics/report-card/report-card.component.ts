@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CommonModule, DecimalPipe } from '@angular/common';
+import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { AcademicsNavComponent } from '../../../shared/components/academics-nav/academics-nav.component';
 import { ClassesService } from '../../students/services/classes.service';
 import { StudentsService } from '../../students/services/students.service';
@@ -12,7 +12,7 @@ import { ExamDto, ReportCardDto } from '../models/academics.models';
 @Component({
   selector: 'app-report-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, AcademicsNavComponent, DecimalPipe],
+  imports: [CommonModule, FormsModule, AcademicsNavComponent, DecimalPipe, DatePipe],
   templateUrl: './report-card.component.html',
   styleUrl: './report-card.component.scss'
 })
@@ -38,6 +38,16 @@ export class ReportCardComponent implements OnInit {
     if (!classId) return [];
     return this.allStudents().filter((s: any) => s.classId === classId);
   });
+
+  // The report card DTO itself only carries exam/subject data — identity
+  // details (roll number, class/section, father's name) already exist on
+  // the student list this page loads anyway, so pulled from there rather
+  // than adding a redundant backend round-trip just to show them here.
+  selectedStudentDetails = computed(() =>
+    this.allStudents().find(s => s.studentId === this.selectedStudentId()) ?? null
+  );
+
+  today = new Date();
 
   ngOnInit() {
     this.classesService.getAll().subscribe(data => this.classes.set(data));

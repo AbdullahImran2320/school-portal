@@ -42,9 +42,30 @@ namespace SchoolPortal.API.Services
 
         public async Task<StudentDto> CreateStudentAsync(CreateStudentDto dto)
         {
+            int rollNumber;
+            if (dto.RollNumber.HasValue)
+            {
+                var taken = await _context.Students.AnyAsync(s => s.RollNumber == dto.RollNumber.Value);
+                if (taken) throw new DuplicateRollNumberException(dto.RollNumber.Value);
+                rollNumber = dto.RollNumber.Value;
+            }
+            else
+            {
+                // Auto-assign the next number in the school-wide sequence.
+                // This is a simple "take the next one" counter, not a
+                // retroactive re-sort by admission date — moving the whole
+                // register every time an old admission date is backfilled
+                // would be far more disruptive than useful in practice.
+                var maxRoll = await _context.Students
+                    .Where(s => s.RollNumber != null)
+                    .MaxAsync(s => (int?)s.RollNumber) ?? 0;
+                rollNumber = maxRoll + 1;
+            }
+
             var student = new Student
             {
                 Name = dto.Name,
+                RollNumber = rollNumber,
                 BFormNumber = dto.BFormNumber,
                 DateOfBirth = dto.DateOfBirth,
                 Gender = dto.Gender,
@@ -60,7 +81,7 @@ namespace SchoolPortal.API.Services
 
             var full = await _repository.GetByIdAsync(created.StudentId);
             return MapToDto(full!);
-           
+
         }
 
         public async Task<bool> UpdateStudentAsync(int id, UpdateStudentDto dto)
@@ -73,9 +94,36 @@ namespace SchoolPortal.API.Services
             student.DateOfBirth = dto.DateOfBirth;
             student.Gender = dto.Gender;
             student.AdmissionStatus = Enum.Parse<AdmissionStatus>(dto.AdmissionStatus);
+
+            // A roll number is unique school-wide, but still tied to which
+            // class register the student actually appears in day to day —
+            // moving classes clears it outright rather than leaving a
+            // number from their old class silently attached to the new
+            // one. Reassigning afterward is a deliberate, separate action
+            // via SetRollNumberAsync, not an incidental side effect someone
+            // could miss while just fixing a typo in the student's name.
+            if (student.ClassId != dto.ClassId)
+            {
+                student.RollNumber = null;
+            }
             student.ClassId = dto.ClassId;
 
             return await _repository.UpdateAsync(student);
+        }
+
+        public async Task<(bool Success, string? Error)> SetRollNumberAsync(int studentId, int rollNumber)
+        {
+            var student = await _repository.GetByIdAsync(studentId);
+            if (student == null) return (false, "Student not found.");
+
+            var takenByOther = await _context.Students
+                .AnyAsync(s => s.RollNumber == rollNumber && s.StudentId != studentId);
+            if (takenByOther)
+                return (false, $"Roll number {rollNumber} is already assigned to another student.");
+
+            student.RollNumber = rollNumber;
+            await _repository.UpdateAsync(student);
+            return (true, null);
         }
 
         public async Task<bool> DeleteStudentAsync(int id)
@@ -87,6 +135,7 @@ namespace SchoolPortal.API.Services
         {
             StudentId = s.StudentId,
             Name = s.Name,
+            RollNumber = s.RollNumber,
             BFormNumber = s.BFormNumber,
             DateOfBirth = s.DateOfBirth,
             Gender = s.Gender,
@@ -94,6 +143,7 @@ namespace SchoolPortal.API.Services
             AdmissionStatus = s.AdmissionStatus.ToString(),
             ClassId = s.ClassId,
             ClassName = s.Class?.ClassName ?? "",
+            Section = s.Class?.Section ?? "",
             ParentId = s.ParentId,
             FatherName = s.Parent?.FatherName ?? "",
             FatherMobile = s.Parent?.FatherMobile ?? "",
@@ -106,20 +156,35 @@ namespace SchoolPortal.API.Services
             var student = await _repository.GetByIdAsync(studentId);
             if (student == null) return false;
 
+            // Same defense-in-depth as FeeEngineService: this method takes a
+            // raw decimal, so it doesn't inherit SetDiscountDto's [Range]
+            // validation from whatever calls it. Clamped here so a negative
+            // discount can never be stored regardless of caller.
+            amount = Math.Max(0, amount);
+
             student.MonthlyDiscountAmount = amount;
             student.DiscountReason = reason;
             await _repository.UpdateAsync(student);
 
             if (applyToRemainingMonths)
             {
-                // Only touch months that haven't been paid yet — never retroactively
-                // change a month that's already Paid or Partial, since that would
-                // silently alter money that's already been collected and recorded.
+                // Applies to every genuinely unpaid month in the year, past
+                // or future — not just "this month onward". A month that's
+                // overdue is still stored as Unpaid (this system never
+                // actually sets LedgerStatus.Overdue; "overdue" is purely a
+                // computed display label based on the due date), so
+                // excluding anything before "today" was quietly skipping
+                // already-passed months a concession should still cover —
+                // exactly the July-vs-September inconsistency this fixes.
+                //
+                // Paid and Partial months are still never touched — that
+                // would retroactively alter money that's already been
+                // collected and recorded, which is a different and much
+                // riskier kind of change than backfilling an unpaid month.
                 var now = DateTime.Now;
                 var candidateMonths = await _context.FeeLedgers.Where(l =>
                     l.StudentId == studentId &&
                     l.Year == now.Year &&
-                    l.MonthNumber >= now.Month &&
                     l.Status == LedgerStatus.Unpaid)
                     .ToListAsync();
 
@@ -136,5 +201,15 @@ namespace SchoolPortal.API.Services
 
             return true;
         }
+    }
+
+    // Thrown when a caller requests a specific roll number (either on
+    // create or via SetRollNumberAsync) that's already assigned to
+    // another student — distinct from a generic failure so callers can
+    // report it as a 409 Conflict rather than a 500.
+    public class DuplicateRollNumberException : Exception
+    {
+        public DuplicateRollNumberException(int rollNumber)
+            : base($"Roll number {rollNumber} is already assigned to another student.") { }
     }
 }

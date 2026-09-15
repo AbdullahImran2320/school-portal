@@ -33,17 +33,40 @@
     <input type="date" [ngModel]="admissionDateTo()" (ngModelChange)="admissionDateTo.set($event)" class="text-input" />
   </label>
   <button class="btn-primary load-btn" (click)="loadVouchers()">Generate</button>
-  @if (vouchers().length > 0) { <button class="btn-secondary" (click)="printAll()">Print all</button> }
+  @if (vouchers().length > 0) {
+    <button class="btn-secondary no-print" (click)="showStudentPicker.set(!showStudentPicker())">
+      {{ showStudentPicker() ? 'Hide' : 'Choose' }} students ({{ selectedStudentIds().size }}/{{ vouchers().length }})
+    </button>
+    <button class="btn-secondary" (click)="printAll()">Print selected</button>
+  }
 </div>
+
+@if (showStudentPicker() && vouchers().length > 0) {
+  <div class="table-card student-picker no-print">
+    <div class="picker-actions">
+      <button class="btn-link" (click)="selectAllStudents()">Select all</button>
+      <button class="btn-link" (click)="selectNoStudents()">Select none</button>
+    </div>
+    @for (v of vouchers(); track v.studentId) {
+      <label class="picker-row">
+        <input type="checkbox" [checked]="isStudentSelected(v.studentId)" (change)="toggleStudent(v.studentId)" />
+        {{ v.studentName }}
+      </label>
+    }
+  </div>
+}
 
 @if (loading()) { <p class="state-message no-print">Loading...</p> }
 @if (error()) { <p class="state-message state-error no-print">{{ error() }}</p> }
-@if (!loading() && !error() && vouchers().length === 0) {
+@if (!loading() && !error() && visibleVouchers().length === 0 && vouchers().length === 0) {
   <p class="state-message no-print">No challans to show yet — pick filters above and Generate.</p>
+}
+@if (!loading() && !error() && visibleVouchers().length === 0 && vouchers().length > 0) {
+  <p class="state-message no-print">No students selected — use "Choose students" above to pick who to print.</p>
 }
 
 <div class="challan-list print-area">
-  @for (v of vouchers(); track v.studentId) {
+  @for (v of visibleVouchers(); track v.studentId) {
     <div class="challan-sheet">
       @for (copyLabel of copyLabels; track copyLabel) {
         <div class="challan-copy">
@@ -57,7 +80,8 @@
 
           <table class="challan-meta-table">
             <tbody>
-              <tr><td>Class</td><td>{{ v.className }}</td></tr>
+              <tr><td>Student</td><td>{{ v.studentName }}</td></tr>
+              <tr><td>Class</td><td>{{ v.className }}{{ v.section ? ' - ' + v.section : '' }}</td></tr>
               <tr><td>Fee For The Month of</td><td>{{ monthNames[v.voucherMonth - 1] }}</td></tr>
               <tr><td>Registration Code</td><td>{{ v.challanNumber }}</td></tr>
               <tr class="due-row"><td>Due Date</td><td>{{ v.dueDate | date:'d MMM y' }}</td></tr>

@@ -25,7 +25,16 @@ export class StudentsService {
     return this.http.put<void>(`${this.baseUrl}/${id}`, dto);
   }
 
+  // Deliberately separate from update() — matches the backend's own
+  // separation: assigning a roll number is its own action with its own
+  // uniqueness check, not a side effect of an unrelated field edit.
+  setRollNumber(id: number, rollNumber: number) {
+    return this.http.put<void>(`${this.baseUrl}/${id}/roll-number`, { rollNumber });
+  }
+
   delete(id: number) {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
+
+
 }

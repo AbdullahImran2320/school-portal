@@ -108,6 +108,33 @@
         <input type="text" formControlName="name" class="text-input" />
       </label>
 
+      @if (!isEditMode()) {
+        <label>Roll Number
+          <input type="number" formControlName="rollNumber" placeholder="Leave blank to auto-assign" class="text-input" min="1" />
+        </label>
+      } @else {
+        <div class="roll-number-block">
+          <span class="roll-number-label">Roll Number</span>
+          <div class="roll-number-current">{{ currentRollNumber() ?? 'Not assigned' }}</div>
+
+          @if (classChanged()) {
+            <p class="roll-number-warning">
+              Class changed — the roll number will be cleared when you save. Assign a new one below (before or after saving).
+            </p>
+          }
+
+          <div class="roll-number-edit">
+            <input type="number" [ngModel]="newRollNumberInput()" (ngModelChange)="newRollNumberInput.set($event)"
+                   [ngModelOptions]="{standalone: true}" placeholder="New roll number" class="text-input" min="1" />
+            <button type="button" class="btn-secondary" (click)="saveRollNumber()" [disabled]="rollNumberSaving()">
+              {{ rollNumberSaving() ? 'Saving…' : 'Set' }}
+            </button>
+          </div>
+          @if (rollNumberError()) { <p class="roll-number-error">{{ rollNumberError() }}</p> }
+          @if (rollNumberSaved()) { <p class="roll-number-success">Roll number updated.</p> }
+        </div>
+      }
+
       <label>B-Form Number *
         <input type="text" formControlName="bFormNumber" placeholder="12345-1234567-1" class="text-input" />
         @if (studentForm.get('bFormNumber')?.touched && studentForm.get('bFormNumber')?.invalid) {

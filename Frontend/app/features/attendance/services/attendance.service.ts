@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import { BulkMarkAttendance, ClassAttendanceRow, StudentAttendanceSummary } from '../models/attendance.models';
+import { BulkMarkAttendance, ClassAttendanceRow, StudentAttendanceSummary, AttendanceRegister } from '../models/attendance.models';
 
 @Injectable({ providedIn: 'root' })
 export class AttendanceService {
@@ -18,5 +18,13 @@ export class AttendanceService {
 
   getStudentSummary(studentId: number, month: number, year: number) {
     return this.http.get<StudentAttendanceSummary>(`${this.baseUrl}/students/${studentId}/summary`, { params: { month, year } });
+  }
+
+  getClassRegister(classId: number, month: number, year: number) {
+    return this.http.get<AttendanceRegister>(`${this.baseUrl}/class/${classId}/register`, { params: { month, year } });
+  }
+
+  exportClassRegister(classId: number, month: number, year: number) {
+    return this.http.get(`${this.baseUrl}/class/${classId}/register/export`, { params: { month, year }, responseType: 'blob' });
   }
 }

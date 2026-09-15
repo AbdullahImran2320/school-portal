@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { StudentsService } from '../services/students.service';
 import { ClassesService } from '../services/classes.service';
@@ -11,7 +11,7 @@ import { ParentDto, UpsertParentDto, PrimaryGuardian } from '../models/parent.mo
 @Component({
   selector: 'app-student-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, FormsModule, RouterLink],
   templateUrl: './student-form.component.html',
   styleUrl: './student-form.component.scss'
 })
@@ -42,8 +42,25 @@ export class StudentFormComponent implements OnInit {
   // Edit mode shows the linked parent read-only (PUT /students/{id} doesn't accept parentId)
   existingParentSummary = signal<{ fatherName: string; fatherMobile: string } | null>(null);
 
+  // Roll number is a separate action from the general edit (matches the
+  // backend's own separation — see StudentsService.setRollNumber) so it has
+  // its own input, its own submit button, and its own error state.
+  currentRollNumber = signal<number | null>(null);
+  originalClassId = signal<number | null>(null);
+  newRollNumberInput = signal<string>('');
+  rollNumberSaving = signal(false);
+  rollNumberError = signal<string | null>(null);
+  rollNumberSaved = signal(false);
+
+  classChanged = computed(() => {
+    const original = this.originalClassId();
+    const current = this.studentForm.get('classId')?.value;
+    return this.isEditMode() && original !== null && current !== null && original !== current;
+  });
+
   studentForm = this.fb.group({
     name: ['', Validators.required],
+    rollNumber: [null as number | null], // create mode only — blank auto-assigns
     bFormNumber: ['', [Validators.required, Validators.pattern(/^\d{5}-\d{7}-\d{1}$/)]],
     dateOfBirth: ['', Validators.required],
     gender: ['', Validators.required],
@@ -96,6 +113,8 @@ export class StudentFormComponent implements OnInit {
           classId: student.classId
         });
         this.studentForm.get('admissionDate')?.disable();
+        this.currentRollNumber.set(student.rollNumber);
+        this.originalClassId.set(student.classId);
 
         this.existingParentSummary.set({
           fatherName: student.fatherName,
@@ -185,6 +204,7 @@ export class StudentFormComponent implements OnInit {
     const formValue = this.studentForm.getRawValue();
     const dto: CreateStudentDto = {
       name: formValue.name!,
+      rollNumber: formValue.rollNumber ?? undefined,
       bFormNumber: formValue.bFormNumber!,
       dateOfBirth: formValue.dateOfBirth!,
       gender: formValue.gender!,
@@ -224,7 +244,38 @@ export class StudentFormComponent implements OnInit {
     });
   }
 
+  saveRollNumber() {
+    const raw = this.newRollNumberInput().trim();
+    const value = Number(raw);
+    this.rollNumberError.set(null);
+    this.rollNumberSaved.set(false);
+
+    if (!raw || !Number.isInteger(value) || value < 1) {
+      this.rollNumberError.set('Enter a whole number greater than 0.');
+      return;
+    }
+
+    this.rollNumberSaving.set(true);
+    this.studentsService.setRollNumber(this.studentId()!, value).subscribe({
+      next: () => {
+        this.currentRollNumber.set(value);
+        this.newRollNumberInput.set('');
+        this.rollNumberSaving.set(false);
+        this.rollNumberSaved.set(true);
+      },
+      error: (err) => {
+        this.rollNumberSaving.set(false);
+        this.rollNumberError.set(
+          err?.status === 409
+            ? (err?.error?.message ?? 'That roll number is already assigned to another student.')
+            : 'Could not save the roll number. Try again.'
+        );
+      }
+    });
+  }
+
   private describeError(err: any, action: 'create' | 'update'): string {
+    if (err?.status === 409) return err?.error?.message ?? 'That roll number is already assigned to another student.';
     if (err?.status === 400) return 'Some fields were rejected by the server — double-check the B-Form number format and dates.';
     if (err?.status === 401 || err?.status === 403) return 'You do not have permission to do this.';
     return `Could not ${action} the student. Check that the backend is running and try again.`;

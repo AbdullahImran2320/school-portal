@@ -7,7 +7,7 @@
 }
 
 .action-col {
-  width: 200px;
+  width: 260px;
   text-align: right;
   white-space: nowrap;
 }
@@ -16,6 +16,7 @@
   font-size: 12px;
   color: var(--text-muted);
   font-style: italic;
+  margin-right: 6px;
 }
 
 .btn-edit,
@@ -68,6 +69,13 @@
   background: var(--surface-accent);
 
   .text-input { max-width: 200px; }
+}
+
+.move-form {
+  margin: 0;
+  justify-content: flex-start;
+
+  .self-note { margin-right: 0; font-style: normal; }
 }
 
 .labels-panel {

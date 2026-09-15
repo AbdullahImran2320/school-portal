@@ -45,6 +45,18 @@ namespace SchoolPortal.API.Controllers
                 .Where(l => studentIds.Contains(l.StudentId) && l.Year == targetYear)
                 .ToListAsync();
 
+            // One-time charges (Admission, Exam, Stationery, etc.) were
+            // previously left out of this screen's totals entirely — a
+            // student could owe Rs 19,000 in charges and this grid would
+            // still show them as fully caught up. Fetched once for the
+            // whole class up front, same reasoning as allLedgers above.
+            var chargesByStudent = (await _context.StudentCharges
+                    .Where(c => studentIds.Contains(c.StudentId) && c.Status != ChargeStatus.Paid)
+                    .Select(c => new { c.StudentId, Balance = (c.DueAmount - c.DiscountAmount) - c.PaidAmount })
+                    .ToListAsync())
+                .GroupBy(c => c.StudentId)
+                .ToDictionary(g => g.Key, g => g.Sum(c => Math.Max(0, c.Balance)));
+
             var rows = students.Select(s =>
             {
                 var months = allLedgers
@@ -55,7 +67,7 @@ namespace SchoolPortal.API.Controllers
                   {
                       MonthNumber = l.MonthNumber,
                       DueAmount = l.DueAmount,
-                      DiscountAmount = l.DiscountAmount,
+                      DiscountAmount = Math.Max(0, l.DiscountAmount),
                       PaidAmount = l.PaidAmount,
                       LedgerId = l.LedgerId,
                       LateFeeAmount = FeeCalculator.GetLateFee(l, now, _gracePeriodDay, _lateFeeAmount),
@@ -64,12 +76,20 @@ namespace SchoolPortal.API.Controllers
                   })
                     .ToList();
 
+                var monthlyTotal = months.Sum(m => (m.DueAmount - Math.Max(0, m.DiscountAmount) + m.LateFeeAmount) - m.PaidAmount);
+                var chargesTotal = chargesByStudent.GetValueOrDefault(s.StudentId, 0m);
+
                 return new StudentFeeRowDto
                 {
                     StudentId = s.StudentId,
                     StudentName = s.Name,
                     Months = months,
-                    TotalOutstanding = months.Sum(m => (m.DueAmount - m.DiscountAmount + m.LateFeeAmount) - m.PaidAmount)
+                    ChargesOutstanding = chargesTotal,
+                    // DiscountAmount is clamped to zero here — a negative
+                    // value (whether from stale pre-validation data or any
+                    // future write path) would otherwise get SUBTRACTED,
+                    // meaning it silently ADDS to what's shown as owed.
+                    TotalOutstanding = monthlyTotal + chargesTotal
                 };
             }).ToList();
 
@@ -110,7 +130,22 @@ namespace SchoolPortal.API.Controllers
                 FeeCalculator.IsApplicableMonth(l.Student.AdmissionDate, l.MonthNumber, l.Year) &&
                 FeeCalculator.GetEffectiveStatus(l, now, _gracePeriodDay) == "Overdue");
 
-            return overdue
+            var overdueList = overdue.ToList();
+            var studentIds = overdueList.Select(l => l.StudentId).Distinct().ToList();
+
+            // Same gap as the fee-grid had: one-time charges were never
+            // folded into this total, so a defaulter could owe thousands in
+            // unpaid Admission/Exam fees and still show a smaller number
+            // here than on their own fee-grid row. Fetched once for every
+            // student on this list, not per student in the loop below.
+            var chargesByStudent = (await _context.StudentCharges
+                    .Where(c => studentIds.Contains(c.StudentId) && c.Status != ChargeStatus.Paid)
+                    .Select(c => new { c.StudentId, Balance = (c.DueAmount - c.DiscountAmount) - c.PaidAmount })
+                    .ToListAsync())
+                .GroupBy(c => c.StudentId)
+                .ToDictionary(g => g.Key, g => g.Sum(c => Math.Max(0, c.Balance)));
+
+            return overdueList
                 .GroupBy(l => l.Student)
                 .Select(g => new DefaulterDto
                 {
@@ -120,12 +155,12 @@ namespace SchoolPortal.API.Controllers
                     FatherMobile = g.Key.Parent.FatherMobile,
                     OverdueMonthsCount = g.Count(),
                     // Same formula as the fee-grid: due minus discount plus
-                    // late fee minus paid, floored at 0 — this used to skip
-                    // discount and late fee entirely, so it disagreed with
-                    // the fee-grid's total for the same student.
+                    // late fee minus paid, floored at 0, plus any unpaid
+                    // one-time charges — see the fee-grid comment for why
+                    // DiscountAmount is clamped to zero here too.
                     TotalOutstanding = g.Sum(l => Math.Max(
-                        (l.DueAmount - l.DiscountAmount + FeeCalculator.GetLateFee(l, now, _gracePeriodDay, _lateFeeAmount)) - l.PaidAmount,
-                        0))
+                        (l.DueAmount - Math.Max(0, l.DiscountAmount) + FeeCalculator.GetLateFee(l, now, _gracePeriodDay, _lateFeeAmount)) - l.PaidAmount,
+                        0)) + chargesByStudent.GetValueOrDefault(g.Key.StudentId, 0m)
                 })
                 .OrderByDescending(d => d.OverdueMonthsCount)
                 .ToList();

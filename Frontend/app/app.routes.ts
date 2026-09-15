@@ -77,6 +77,11 @@ export const routes: Routes = [
   canActivate: [roleGuard(['Admin', 'Teacher']), licenseGuard]
 },
 {
+  path: 'attendance/register',
+  loadComponent: () => import('./features/attendance/register/register.component').then(m => m.AttendanceRegisterComponent),
+  canActivate: [roleGuard(['Admin', 'Teacher']), licenseGuard]
+},
+{
   path: 'attendance/report',
   loadComponent: () => import('./features/attendance/student-report/student-report.component').then(m => m.StudentReportComponent),
   canActivate: [roleGuard(['Admin', 'Teacher']), licenseGuard]

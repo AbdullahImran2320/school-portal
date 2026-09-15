@@ -18,6 +18,13 @@ namespace SchoolPortal.API.DTOs
         public int StudentId { get; set; }
         public string StudentName { get; set; } = string.Empty;
         public List<MonthCellDto> Months { get; set; } = new();
+        // Unpaid/partial one-time charges (Admission, Exam, Stationery,
+        // etc.) — broken out separately from the monthly total so it's
+        // clear where the number comes from, but folded into
+        // TotalOutstanding so that column means what it says: everything
+        // this student currently owes, matching the same total a printed
+        // challan would show.
+        public decimal ChargesOutstanding { get; set; }
         public decimal TotalOutstanding { get; set; }
     }
 

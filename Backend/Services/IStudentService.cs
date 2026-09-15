@@ -13,5 +13,6 @@ namespace SchoolPortal.API.Services
         Task<bool> DeleteStudentAsync(int id);
         // Interface
         Task<bool> SetDiscountAsync(int studentId, decimal amount, string? reason, bool applyToRemainingMonths);
+        Task<(bool Success, string? Error)> SetRollNumberAsync(int studentId, int rollNumber);
     }
 }

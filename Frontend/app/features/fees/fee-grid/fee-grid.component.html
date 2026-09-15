@@ -75,7 +75,10 @@
                 <td class="month-cell not-applicable" aria-label="Not applicable"></td>
               }
             }
-            <td class="outstanding-col">Rs {{ student.totalOutstanding | number }}</td>
+            <td class="outstanding-col"
+                [title]="student.chargesOutstanding > 0 ? 'Includes Rs ' + (student.chargesOutstanding | number) + ' in one-time charges' : ''">
+              Rs {{ student.totalOutstanding | number }}
+            </td>
           </tr>
         }
       </tbody>

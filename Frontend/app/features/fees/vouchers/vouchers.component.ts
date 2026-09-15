@@ -37,6 +37,17 @@ export class VouchersComponent implements OnInit {
   loading = signal(false);
   error = signal<string | null>(null);
 
+  // Which of the generated vouchers to actually show/print — defaults to
+  // everyone, but lets the admin uncheck specific students without having
+  // to re-run generation with narrower filters (charge type / admission
+  // date only narrow WHO qualifies, they can't hand-pick individuals).
+  selectedStudentIds = signal<Set<number>>(new Set());
+  showStudentPicker = signal(false);
+
+  visibleVouchers = computed(() =>
+    this.vouchers().filter(v => this.selectedStudentIds().has(v.studentId))
+  );
+
   yearOptions = computed(() => {
     const current = new Date().getFullYear();
     return [current - 1, current, current + 1];
@@ -71,9 +82,34 @@ export class VouchersComponent implements OnInit {
       admissionDateFrom: this.admissionDateFrom() ?? undefined,
       admissionDateTo: this.admissionDateTo() ?? undefined
     }).subscribe({
-      next: (data) => { this.vouchers.set(data); this.loading.set(false); },
+      next: (data) => {
+        this.vouchers.set(data);
+        // Default to everyone selected — the picker is for narrowing down,
+        // not an opt-in list someone has to rebuild from empty every time.
+        this.selectedStudentIds.set(new Set(data.map(v => v.studentId)));
+        this.loading.set(false);
+      },
       error: () => { this.error.set('Could not load challans for this class/month.'); this.loading.set(false); }
     });
+  }
+
+  toggleStudent(studentId: number) {
+    const current = new Set(this.selectedStudentIds());
+    if (current.has(studentId)) current.delete(studentId);
+    else current.add(studentId);
+    this.selectedStudentIds.set(current);
+  }
+
+  isStudentSelected(studentId: number): boolean {
+    return this.selectedStudentIds().has(studentId);
+  }
+
+  selectAllStudents() {
+    this.selectedStudentIds.set(new Set(this.vouchers().map(v => v.studentId)));
+  }
+
+  selectNoStudents() {
+    this.selectedStudentIds.set(new Set());
   }
 
   printAll() { window.print(); }

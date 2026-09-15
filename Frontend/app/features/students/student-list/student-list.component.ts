@@ -24,7 +24,8 @@ export class StudentListComponent implements OnInit {
     return this.students().filter(s =>
       s.name.toLowerCase().includes(term) ||
       s.bFormNumber.toLowerCase().includes(term) ||
-      s.className.toLowerCase().includes(term)
+      s.className.toLowerCase().includes(term) ||
+      (s.rollNumber != null && s.rollNumber.toString().includes(term))
     );
   });
 

@@ -110,7 +110,8 @@ export class FeeGridComponent implements OnInit {
   }
 
   monthOutstanding(month: MonthCell): number {
-    return Math.max(month.dueAmount - month.discountAmount + month.lateFeeAmount - month.paidAmount, 0);
+    const safeDiscount = Math.max(0, month.discountAmount);
+    return Math.max(month.dueAmount - safeDiscount + month.lateFeeAmount - month.paidAmount, 0);
   }
 
   openConcession(student: StudentFeeRow) {

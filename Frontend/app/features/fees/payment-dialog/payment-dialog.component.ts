@@ -38,8 +38,13 @@ export class PaymentDialogComponent {
   error = signal<string | null>(null);
 
   outstanding(): number {
+    // Clamped defensively, same as everywhere else this value is used —
+    // a negative discountAmount (stale data, or any future path that
+    // bypasses validation) would otherwise get SUBTRACTED here, silently
+    // inflating the amount pre-filled for the parent to pay.
+    const safeDiscount = Math.max(0, this.target.discountAmount);
     return Math.max(
-      (this.target.dueAmount - this.target.discountAmount + this.target.lateFeeAmount) - this.target.paidAmount,
+      (this.target.dueAmount - safeDiscount + this.target.lateFeeAmount) - this.target.paidAmount,
       0
     );
   }

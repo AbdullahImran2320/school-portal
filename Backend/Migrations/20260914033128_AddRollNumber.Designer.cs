@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SchoolPortal.API.Data;
 
@@ -10,9 +11,11 @@ using SchoolPortal.API.Data;
 namespace SchoolPortal.API.Migrations
 {
     [DbContext(typeof(SchoolPortalDbContext))]
-    partial class SchoolPortalDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260914033128_AddRollNumber")]
+    partial class AddRollNumber
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.30");
@@ -450,18 +453,11 @@ namespace SchoolPortal.API.Migrations
                     b.Property<int>("ParentId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("RollNumber")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("StudentId");
 
                     b.HasIndex("ClassId");
 
                     b.HasIndex("ParentId");
-
-                    b.HasIndex("RollNumber")
-                        .IsUnique()
-                        .HasFilter("\"RollNumber\" IS NOT NULL");
 
                     b.ToTable("Students");
                 });

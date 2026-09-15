@@ -42,10 +42,18 @@ namespace SchoolPortal.API.Services
 
         // What the student actually owes right now for this month:
         // component due, minus any standing discount, plus a late fee if applicable.
+        //
+        // DiscountAmount is clamped to zero here (not just validated where
+        // it's written) so that any already-stored bad value — from before
+        // validation existed, or written by a path that bypassed it — still
+        // renders correctly instead of silently inflating what's owed. A
+        // negative discount here would otherwise get SUBTRACTED, which
+        // means ADDED to the total.
         public static decimal GetEffectiveDue(FeeLedger ledger, DateTime now, int gracePeriodDay, decimal lateFeeAmount)
         {
             var lateFee = GetLateFee(ledger, now, gracePeriodDay, lateFeeAmount);
-            return ledger.DueAmount - ledger.DiscountAmount + lateFee;
+            var safeDiscount = Math.Max(0, ledger.DiscountAmount);
+            return ledger.DueAmount - safeDiscount + lateFee;
         }
     }
 }

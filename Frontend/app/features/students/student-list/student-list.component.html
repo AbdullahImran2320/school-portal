@@ -14,7 +14,7 @@
 <div class="toolbar">
   <input
     type="text"
-    placeholder="Search by name, B-Form number, or class..."
+    placeholder="Search by name, roll number, B-Form number, or class..."
     [value]="searchTerm()"
     (input)="searchTerm.set($any($event.target).value)"
     class="search-input"
@@ -35,6 +35,7 @@
   <table class="data-table">
     <thead>
       <tr>
+        <th>Roll No.</th>
         <th>Name</th>
         <th>B-Form Number</th>
         <th>Class</th>
@@ -47,9 +48,10 @@
     <tbody>
       @for (student of filteredStudents(); track student.studentId) {
         <tr>
+          <td>{{ student.rollNumber ?? '—' }}</td>
           <td>{{ student.name }}</td>
           <td>{{ student.bFormNumber }}</td>
-          <td>{{ student.className }}</td>
+          <td>{{ student.className }}{{ student.section ? ' - ' + student.section : '' }}</td>
           <td>{{ student.fatherName }}</td>
           <td>{{ student.fatherMobile }}</td>
           <td>

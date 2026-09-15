@@ -123,6 +123,17 @@ namespace SchoolPortal.API.Data
                 .Property(s => s.AdmissionStatus)
                 .HasConversion<string>();
 
+            // Roll number is unique school-wide. The service layer already
+            // checks for a duplicate before saving, but that check plus the
+            // save aren't atomic — this index is the actual guarantee
+            // against a race between two near-simultaneous requests. Null
+            // is allowed (a student can be created without one yet), so
+            // the uniqueness only applies to rows that have a value.
+            modelBuilder.Entity<Student>()
+                .HasIndex(s => s.RollNumber)
+                .IsUnique()
+                .HasFilter("\"RollNumber\" IS NOT NULL");
+
             modelBuilder.Entity<Parent>()
                   .Property(p => p.PrimaryGuardian)
                   .HasConversion<string>();

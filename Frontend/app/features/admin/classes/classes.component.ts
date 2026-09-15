@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AdminNavComponent } from '../../../shared/components/admin-nav/admin-nav.component';
@@ -41,12 +42,26 @@ export class ClassesComponent implements OnInit {
   deletingId = signal<number | null>(null);
   deletingGroup = signal<string | null>(null);
 
+  // Move-students form (per section, keyed by the "from" classId — only one
+  // row's move form open at a time, same pattern as the add-section form)
+  moveFormOpenFor = signal<number | null>(null);
+  moveTargetId = signal<number | null>(null);
+  movingStudents = signal<number | null>(null);
+
   // Labels not yet used by a given group — what the "add section" dropdown offers
   availableLabelsFor = computed(() => {
     return (group: ClassGroupDto) => {
       const used = new Set(group.sections.map(s => s.section).filter(Boolean));
       return this.sectionOptions().filter(o => !used.has(o.name));
     };
+  });
+
+  // Other sections in the same grade/year — the only valid move targets,
+  // since the backend restricts bulk moves to siblings of the same class
+  // and year (see /api/classes/{id}/move-students).
+  moveTargetsFor = computed(() => {
+    return (group: ClassGroupDto, fromClassId: number) =>
+      group.sections.filter(s => s.classId !== fromClassId);
   });
 
   ngOnInit() {
@@ -157,6 +172,37 @@ export class ClassesComponent implements OnInit {
     });
   }
 
+  openMoveForm(classId: number) {
+    this.actionError.set(null);
+    this.moveFormOpenFor.set(classId);
+    this.moveTargetId.set(null);
+  }
+
+  cancelMoveForm() {
+    this.moveFormOpenFor.set(null);
+    this.moveTargetId.set(null);
+  }
+
+  moveStudents(fromClassId: number) {
+    const toClassId = this.moveTargetId();
+    if (!toClassId) return;
+
+    this.actionError.set(null);
+    this.movingStudents.set(fromClassId);
+    this.classesService.moveStudents(fromClassId, toClassId).subscribe({
+      next: () => {
+        this.movingStudents.set(null);
+        this.moveFormOpenFor.set(null);
+        this.moveTargetId.set(null);
+        this.loadAll();
+      },
+      error: (err) => {
+        this.actionError.set(err?.error ?? 'Could not move students.');
+        this.movingStudents.set(null);
+      }
+    });
+  }
+
   addLabel() {
     const name = this.newLabelName().trim();
     if (!name) return;
@@ -181,7 +227,8 @@ export class ClassesComponent implements OnInit {
 
     this.classesService.deleteSectionOption(option.sectionOptionId).subscribe({
       next: () => this.sectionOptions.update(list => list.filter(o => o.sectionOptionId !== option.sectionOptionId)),
-      error: (err) => this.actionError.set(err?.error ?? `Could not remove '${option.name}'.`)
+      error: (err: HttpErrorResponse) =>
+        this.actionError.set(err?.error ?? `Could not remove '${option.name}'.`)
     });
   }
 }

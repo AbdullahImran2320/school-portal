@@ -12,6 +12,7 @@ import { PromotionResultDto } from '../models/admin.models';
 interface ClassGroup {
   classId: number;
   className: string;
+  section: string;
   promotionOrder: number;
   students: StudentDto[];
 }
@@ -53,6 +54,7 @@ export class PromotionComponent implements OnInit {
         groups.set(s.classId, {
           classId: s.classId,
           className: cls?.className ?? s.className,
+          section: cls?.section ?? s.section ?? '',
           promotionOrder: cls?.promotionOrder ?? 0,
           students: []
         });

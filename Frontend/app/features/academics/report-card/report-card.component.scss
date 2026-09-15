@@ -118,6 +118,43 @@
   &.text-error { color: var(--status-overdue); }
 }
 
+.rc-footer {
+  margin-top: 24px;
+}
+
+.rc-remarks {
+  margin-bottom: 28px;
+
+  .label { font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 8px; }
+  .remarks-line { border-bottom: 1px solid var(--border-strong); height: 28px; }
+}
+
+.rc-signatures {
+  display: flex;
+  justify-content: space-between;
+  max-width: 400px;
+  margin-left: auto;
+}
+
+.signature-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 160px;
+
+  .signature-line { width: 100%; border-bottom: 1px solid var(--text-primary); height: 1px; margin-top: 24px; }
+  span { font-size: 12px; color: var(--text-secondary); }
+}
+
+// Explicit @page rules rather than the browser's print defaults — same
+// reasoning as the challan/receipt stylesheets: consistent margins
+// regardless of which browser or printer generates the actual page.
+@page {
+  size: A4 portrait;
+  margin: 15mm;
+}
+
 @media print {
   .no-print { display: none !important; }
   .report-card-container {

@@ -43,4 +43,35 @@ namespace SchoolPortal.API.DTOs
         public int LateDays { get; set; }
         public double AttendancePercentage { get; set; }
     }
+
+    public class AttendanceRegisterCellDto
+    {
+        public int Day { get; set; }
+        // "Present" / "Absent" / "Leave" / "Late" / "NotMarked" — the system
+        // has no holiday calendar, so a weekend or school holiday shows the
+        // same as any other unmarked day rather than something distinct.
+        public string Status { get; set; } = "NotMarked";
+    }
+
+    public class AttendanceRegisterRowDto
+    {
+        public int StudentId { get; set; }
+        public string StudentName { get; set; } = string.Empty;
+        public int? RollNumber { get; set; }
+        public List<AttendanceRegisterCellDto> Days { get; set; } = new();
+        public int PresentCount { get; set; }
+        public int AbsentCount { get; set; }
+        public int LeaveCount { get; set; }
+        public int LateCount { get; set; }
+    }
+
+    public class AttendanceRegisterDto
+    {
+        public int ClassId { get; set; }
+        public string ClassName { get; set; } = string.Empty;
+        public int Month { get; set; }
+        public int Year { get; set; }
+        public int DaysInMonth { get; set; }
+        public List<AttendanceRegisterRowDto> Students { get; set; } = new();
+    }
 }

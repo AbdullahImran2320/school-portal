@@ -27,3 +27,28 @@ export interface StudentAttendanceSummary {
   lateDays: number;
   attendancePercentage: number;
 }
+
+export interface AttendanceRegisterCell {
+  day: number;
+  status: AttendanceStatus;
+}
+
+export interface AttendanceRegisterRow {
+  studentId: number;
+  studentName: string;
+  rollNumber: number | null;
+  days: AttendanceRegisterCell[];
+  presentCount: number;
+  absentCount: number;
+  leaveCount: number;
+  lateCount: number;
+}
+
+export interface AttendanceRegister {
+  classId: number;
+  className: string;
+  month: number;
+  year: number;
+  daysInMonth: number;
+  students: AttendanceRegisterRow[];
+}

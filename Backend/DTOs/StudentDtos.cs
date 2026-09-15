@@ -5,6 +5,7 @@ namespace SchoolPortal.API.DTOs
     public class StudentDto
     {
         public int StudentId { get; set; }
+        public int? RollNumber { get; set; }
         public string Name { get; set; } = string.Empty;
         public string BFormNumber { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
@@ -13,6 +14,7 @@ namespace SchoolPortal.API.DTOs
         public string AdmissionStatus { get; set; } = string.Empty;
         public int ClassId { get; set; }
         public string ClassName { get; set; } = string.Empty;
+        public string Section { get; set; } = string.Empty;
         public int ParentId { get; set; }
         public string FatherName { get; set; } = string.Empty;
         public string FatherMobile { get; set; } = string.Empty;
@@ -24,6 +26,12 @@ namespace SchoolPortal.API.DTOs
 
 public class CreateStudentDto
     {
+        // Optional — leave null to auto-assign the next roll number in the
+        // school-wide sequence. Supplying a value requests that specific
+        // number instead, and the service rejects it if already taken.
+        [Range(1, int.MaxValue, ErrorMessage = "RollNumber must be a positive number")]
+        public int? RollNumber { get; set; }
+
         [Required, StringLength(100, MinimumLength = 2)]
         public string Name { get; set; } = string.Empty;
 
@@ -74,5 +82,11 @@ public class CreateStudentDto
         public decimal MonthlyDiscountAmount { get; set; }
         public string? Reason { get; set; }
         public bool ApplyToRemainingMonthsThisYear { get; set; } = true;
+    }
+
+    public class SetRollNumberDto
+    {
+        [Range(1, int.MaxValue, ErrorMessage = "RollNumber must be a positive number")]
+        public int RollNumber { get; set; }
     }
 }

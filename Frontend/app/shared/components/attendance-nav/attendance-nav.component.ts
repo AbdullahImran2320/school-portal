@@ -8,6 +8,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   template: `
     <nav class="attendance-nav">
       <a routerLink="/attendance" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Mark Attendance</a>
+      <a routerLink="/attendance/register" routerLinkActive="active">Register</a>
       <a routerLink="/attendance/report" routerLinkActive="active">Student Report</a>
     </nav>
   `,

@@ -3,6 +3,7 @@ export type AdmissionStatus = 'Applied' | 'Admitted' | 'Withdrawn' | 'Rejected' 
 export interface StudentDto {
   studentId: number;
   name: string;
+  rollNumber: number | null;
   bFormNumber: string;
   dateOfBirth: string;
   gender: string;
@@ -10,6 +11,7 @@ export interface StudentDto {
   admissionStatus: AdmissionStatus;
   classId: number;
   className: string;
+  section: string;
   parentId: number;
   fatherName: string;
   fatherMobile: string;
@@ -19,6 +21,9 @@ export interface StudentDto {
 
 export interface CreateStudentDto {
   name: string;
+  // Leave undefined to auto-assign the next available number in admission
+  // order; set explicitly to skip auto-assignment.
+  rollNumber?: number;
   bFormNumber: string;
   dateOfBirth: string;
   gender: string;

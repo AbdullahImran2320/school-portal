@@ -35,12 +35,12 @@
 
   @for (group of groupedByClass(); track group.classId) {
     <div class="class-group">
-      <h2>{{ group.className }}</h2>
+      <h2>{{ group.className }}{{ group.section ? ' - ' + group.section : '' }}</h2>
       <div class="student-list">
         @for (student of group.students; track student.studentId) {
           <label class="student-row">
             <input type="checkbox" [checked]="isHeldBack(student.studentId)" (change)="toggleHoldBack(student.studentId)" />
-            <span class="student-name">{{ student.name }}</span>
+            <span class="student-name">{{ student.rollNumber ? '#' + student.rollNumber + ' — ' : '' }}{{ student.name }}</span>
             <span class="repeat-label">Repeat this class</span>
           </label>
         }

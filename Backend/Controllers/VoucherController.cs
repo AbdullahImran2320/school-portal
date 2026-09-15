@@ -41,10 +41,14 @@ namespace SchoolPortal.API.Controllers
 
             var now = DateTime.Now;
             var lateFee = FeeCalculator.GetLateFee(ledger, now, _gracePeriodDay, _lateFeeAmount);
+            // Clamp DiscountAmount to zero before using it — a stale or
+            // otherwise-negative value would get SUBTRACTED here, which
+            // means it silently ADDS to what the challan shows as owed.
+            var safeDiscount = Math.Max(0, ledger.DiscountAmount);
             // Never show a negative "amount due" on a printed voucher — an
             // overpaid or fully-paid month should read as 0, not a credit.
-            var netMonthly = Math.Max((ledger.DueAmount - ledger.DiscountAmount + lateFee) - ledger.PaidAmount, 0);
-            var netMonthlyNoLateFee = Math.Max((ledger.DueAmount - ledger.DiscountAmount) - ledger.PaidAmount, 0);
+            var netMonthly = Math.Max((ledger.DueAmount - safeDiscount + lateFee) - ledger.PaidAmount, 0);
+            var netMonthlyNoLateFee = Math.Max((ledger.DueAmount - safeDiscount) - ledger.PaidAmount, 0);
 
             var includeMonthlyLine = chargeTypeOnly == null
                 || string.Equals(chargeTypeOnly, "Monthly Fee", StringComparison.OrdinalIgnoreCase)
@@ -79,12 +83,13 @@ namespace SchoolPortal.API.Controllers
                 StudentName = student.Name,
                 BFormNumber = student.BFormNumber,
                 ClassName = student.Class?.ClassName ?? "",
+                Section = student.Class?.Section ?? "",
                 FatherName = student.Parent?.FatherName ?? "",
                 FatherMobile = student.Parent?.FatherMobile ?? "",
                 VoucherMonth = month,
                 VoucherYear = year,
                 MonthlyFeeDue = includeMonthlyLine ? ledger.DueAmount : 0,
-                DiscountAmount = includeMonthlyLine ? ledger.DiscountAmount : 0,
+                DiscountAmount = includeMonthlyLine ? safeDiscount : 0,
                 LateFeeAmount = includeMonthlyLine ? lateFee : 0,
                 MonthlyNetPayable = includeMonthlyLine ? netMonthly : 0,
                 OutstandingCharges = outstandingCharges,

@@ -15,6 +15,7 @@ export interface StudentFeeRow {
   studentId: number;
   studentName: string;
   months: MonthCell[];
+  chargesOutstanding: number;
   totalOutstanding: number;
 }
 
@@ -122,6 +123,7 @@ export interface FeeVoucher {
   studentName: string;
   bFormNumber: string;
   className: string;
+  section: string;
   fatherName: string;
   fatherMobile: string;
   voucherMonth: number;

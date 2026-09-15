@@ -20,15 +20,13 @@ namespace SchoolPortal.API.Models
         public DateTime AdmissionDate { get; set; }
         public AdmissionStatus AdmissionStatus { get; set; } = AdmissionStatus.Applied;
         public decimal MonthlyDiscountAmount { get; set; } = 0;
-        public string? DiscountReason { get; set; } // "Sibling Discount", "Staff Scholarship", etc.
+        public string? DiscountReason { get; set; }
 
-        // Foreign keys
         public int ClassId { get; set; }
         public SchoolClass Class { get; set; } = null!;
 
         public int ParentId { get; set; }
         public Parent Parent { get; set; } = null!;
-      
-   
+        public int? RollNumber { get; set; }
     }
 }

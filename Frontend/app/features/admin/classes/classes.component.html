@@ -103,9 +103,15 @@
               <td>{{ s.studentCount }}</td>
               <td class="action-col">
                 @if (s.studentCount > 0) {
-                  <span class="self-note" title="Reassign these students to another class first.">
-                    {{ s.studentCount }} student(s) — not deletable
-                  </span>
+                  <span class="self-note">{{ s.studentCount }} student(s) —</span>
+                  <button
+                    class="btn-edit"
+                    (click)="openMoveForm(s.classId)"
+                    [disabled]="moveTargetsFor()(group, s.classId).length === 0"
+                    [title]="moveTargetsFor()(group, s.classId).length === 0 ? 'No other section in this class to move them to — add one first.' : 'Reassign these students to another section.'"
+                  >
+                    Move Students
+                  </button>
                 } @else {
                   <button
                     class="btn-cancel"
@@ -117,6 +123,29 @@
                 }
               </td>
             </tr>
+            @if (moveFormOpenFor() === s.classId) {
+              <tr>
+                <td colspan="3">
+                  <div class="add-class-card section-form move-form">
+                    <span class="self-note">
+                      Move {{ s.studentCount }} student(s) from {{ s.section || '(unsectioned)' }} to:
+                    </span>
+                    <select class="text-input" [ngModel]="moveTargetId()" (ngModelChange)="moveTargetId.set($event)">
+                      <option [ngValue]="null" disabled>Choose a section…</option>
+                      @for (opt of moveTargetsFor()(group, s.classId); track opt.classId) {
+                        <option [ngValue]="opt.classId">{{ opt.section || '(unsectioned)' }}</option>
+                      }
+                    </select>
+                    <button
+                      class="btn-save"
+                      (click)="moveStudents(s.classId)"
+                      [disabled]="movingStudents() === s.classId || !moveTargetId()"
+                    >✓</button>
+                    <button class="btn-cancel" (click)="cancelMoveForm()">✕</button>
+                  </div>
+                </td>
+              </tr>
+            }
           }
         </tbody>
       </table>

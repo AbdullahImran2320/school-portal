@@ -56,4 +56,17 @@ namespace SchoolPortal.API.DTOs
         [Required, MaxLength(50)]
         public string Name { get; set; } = string.Empty;
     }
+
+    public class MoveStudentsDto
+    {
+        [Range(1, int.MaxValue, ErrorMessage = "A valid target section is required")]
+        public int ToClassId { get; set; }
+    }
+
+    public class MoveStudentsResultDto
+    {
+        public int MovedCount { get; set; }
+        public string FromLabel { get; set; } = string.Empty;
+        public string ToLabel { get; set; } = string.Empty;
+    }
 }

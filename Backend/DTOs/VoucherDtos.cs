@@ -19,6 +19,7 @@ namespace SchoolPortal.API.DTOs
         public string StudentName { get; set; } = string.Empty;
         public string BFormNumber { get; set; } = string.Empty;
         public string ClassName { get; set; } = string.Empty;
+        public string Section { get; set; } = string.Empty;
         public string FatherName { get; set; } = string.Empty;
         public string FatherMobile { get; set; } = string.Empty;
 

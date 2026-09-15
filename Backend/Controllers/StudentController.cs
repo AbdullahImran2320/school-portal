@@ -43,8 +43,15 @@ namespace SchoolPortal.API.Controllers
         {
             if (!Enum.TryParse<AdmissionStatus>(dto.AdmissionStatus, out _))
                 return BadRequest(new { message = "Invalid AdmissionStatus. Must be Applied, Admitted, Withdrawn, Rejected, or Graduated." });
-            var created = await _studentService.CreateStudentAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = created.StudentId }, created);
+            try
+            {
+                var created = await _studentService.CreateStudentAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = created.StudentId }, created);
+            }
+            catch (DuplicateRollNumberException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
         }
 
         // Blank workbook with headers, formatted example row, and a * on
@@ -133,6 +140,19 @@ namespace SchoolPortal.API.Controllers
         {
             var updated = await _studentService.SetDiscountAsync(id, dto.MonthlyDiscountAmount, dto.Reason, dto.ApplyToRemainingMonthsThisYear);
             if (!updated) return NotFound();
+            return NoContent();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}/roll-number")]
+        public async Task<IActionResult> SetRollNumber(int id, SetRollNumberDto dto)
+        {
+            var (success, error) = await _studentService.SetRollNumberAsync(id, dto.RollNumber);
+            if (!success)
+            {
+                if (error == "Student not found.") return NotFound();
+                return Conflict(new { message = error });
+            }
             return NoContent();
         }
     }

@@ -1,0 +1,77 @@
+<app-attendance-nav />
+<div class="page-header">
+  <h1>Attendance Register</h1>
+  <p class="page-subtitle">A full month at a glance, in the same layout as a physical register.</p>
+</div>
+
+<div class="toolbar table-card">
+  <label>Class
+    <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); load()" class="text-input">
+      @for (cls of classes(); track cls.classId) { <option [ngValue]="cls.classId">{{ cls.className }}{{ cls.section ? ' - ' + cls.section : '' }}</option> }
+    </select>
+  </label>
+  <label>Month
+    <select [ngModel]="selectedMonth()" (ngModelChange)="selectedMonth.set($event); load()" class="text-input">
+      @for (m of monthNames; track m; let i = $index) { <option [ngValue]="i + 1">{{ m }}</option> }
+    </select>
+  </label>
+  <label>Year
+    <select [ngModel]="selectedYear()" (ngModelChange)="selectedYear.set($event); load()" class="text-input">
+      @for (y of yearOptions(); track y) { <option [ngValue]="y">{{ y }}</option> }
+    </select>
+  </label>
+  @if (register() && register()!.students.length > 0) {
+    <button class="btn-secondary" (click)="exportToExcel()" [disabled]="exporting()">
+      {{ exporting() ? 'Exporting…' : 'Export to Excel' }}
+    </button>
+  }
+</div>
+
+@if (exportError()) { <p class="state-message state-error">{{ exportError() }}</p> }
+
+@if (loading()) {
+  <p class="state-message">Loading…</p>
+} @else if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+} @else if (register(); as r) {
+  @if (r.students.length === 0) {
+    <p class="state-message">No admitted students in this class.</p>
+  } @else {
+    <div class="register-scroll table-card">
+      <table class="data-table register-table">
+        <thead>
+          <tr>
+            <th class="sticky-col roll-col">Roll</th>
+            <th class="sticky-col name-col">Student</th>
+            @for (d of dayNumbers(); track d) { <th class="day-col">{{ d }}</th> }
+            <th class="summary-col">P</th>
+            <th class="summary-col">A</th>
+            <th class="summary-col">L</th>
+            <th class="summary-col">T</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of r.students; track s.studentId) {
+            <tr>
+              <td class="sticky-col roll-col">{{ s.rollNumber ?? '—' }}</td>
+              <td class="sticky-col name-col">{{ s.studentName }}</td>
+              @for (day of s.days; track day.day) {
+                <td class="day-col" [class.cell-present]="day.status === 'Present'"
+                    [class.cell-absent]="day.status === 'Absent'"
+                    [class.cell-leave]="day.status === 'Leave'"
+                    [class.cell-late]="day.status === 'Late'">
+                  {{ letterFor(day.status) }}
+                </td>
+              }
+              <td class="summary-col">{{ s.presentCount }}</td>
+              <td class="summary-col">{{ s.absentCount }}</td>
+              <td class="summary-col">{{ s.leaveCount }}</td>
+              <td class="summary-col">{{ s.lateCount }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="register-legend">P = Present, A = Absent, L = Leave, T = Late. Blank = not marked.</p>
+  }
+}
