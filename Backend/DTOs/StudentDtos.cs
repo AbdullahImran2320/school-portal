@@ -5,8 +5,8 @@ namespace SchoolPortal.API.DTOs
     public class StudentDto
     {
         public int StudentId { get; set; }
-        public int? RollNumber { get; set; }
         public string Name { get; set; } = string.Empty;
+        public int? RollNumber { get; set; }
         public string BFormNumber { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
         public string Gender { get; set; } = string.Empty;
@@ -15,6 +15,7 @@ namespace SchoolPortal.API.DTOs
         public int ClassId { get; set; }
         public string ClassName { get; set; } = string.Empty;
         public string Section { get; set; } = string.Empty;
+        public bool HasPhoto { get; set; }
         public int ParentId { get; set; }
         public string FatherName { get; set; } = string.Empty;
         public string FatherMobile { get; set; } = string.Empty;
@@ -26,14 +27,14 @@ namespace SchoolPortal.API.DTOs
 
 public class CreateStudentDto
     {
-        // Optional — leave null to auto-assign the next roll number in the
-        // school-wide sequence. Supplying a value requests that specific
-        // number instead, and the service rejects it if already taken.
-        [Range(1, int.MaxValue, ErrorMessage = "RollNumber must be a positive number")]
-        public int? RollNumber { get; set; }
-
         [Required, StringLength(100, MinimumLength = 2)]
         public string Name { get; set; } = string.Empty;
+
+        // Left null to auto-assign the next available number in admission
+        // order; set explicitly to skip auto-assignment (e.g. re-entering a
+        // student whose paper roll number is already fixed).
+        [Range(1, int.MaxValue, ErrorMessage = "Roll number must be positive")]
+        public int? RollNumber { get; set; }
 
         [Required, RegularExpression(@"^\d{5}-\d{7}-\d{1}$", ErrorMessage = "B-Form number must be in format 12345-1234567-1")]
         public string BFormNumber { get; set; } = string.Empty;
@@ -76,17 +77,22 @@ public class CreateStudentDto
         [Range(1, int.MaxValue)]
         public int ClassId { get; set; }
     }
+
+    // Deliberately separate from UpdateStudentDto — same reasoning as why
+    // ParentId isn't editable through the general update: assigning a roll
+    // number is its own distinct action with its own validation (uniqueness
+    // school-wide), not a side effect of an unrelated field edit.
+    public class SetRollNumberDto
+    {
+        [Range(1, int.MaxValue, ErrorMessage = "Roll number must be positive")]
+        public int RollNumber { get; set; }
+    }
+
     public class SetDiscountDto
     {
         [Range(0, double.MaxValue, ErrorMessage = "Discount amount can't be negative")]
         public decimal MonthlyDiscountAmount { get; set; }
         public string? Reason { get; set; }
         public bool ApplyToRemainingMonthsThisYear { get; set; } = true;
-    }
-
-    public class SetRollNumberDto
-    {
-        [Range(1, int.MaxValue, ErrorMessage = "RollNumber must be a positive number")]
-        public int RollNumber { get; set; }
     }
 }

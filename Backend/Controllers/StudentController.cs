@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
+using SchoolPortal.API.Data;
 using SchoolPortal.API.DTOs;
 using SchoolPortal.API.Models;
 using SchoolPortal.API.Services;
@@ -14,11 +16,29 @@ namespace SchoolPortal.API.Controllers
     {
         private readonly IStudentService _studentService;
         private readonly IStudentImportService _importService;
+        private readonly IAttendanceService _attendanceService;
+        private readonly IResultService _resultService;
+        private readonly SchoolPortalDbContext _context;
+        private readonly IConfiguration _config;
+        private readonly int _gracePeriodDay;
+        private readonly decimal _lateFeeAmount;
 
-        public StudentsController(IStudentService studentService, IStudentImportService importService)
+        public StudentsController(
+            IStudentService studentService,
+            IStudentImportService importService,
+            IAttendanceService attendanceService,
+            IResultService resultService,
+            SchoolPortalDbContext context,
+            IConfiguration config)
         {
             _studentService = studentService;
             _importService = importService;
+            _attendanceService = attendanceService;
+            _resultService = resultService;
+            _context = context;
+            _config = config;
+            _gracePeriodDay = config.GetValue<int>("LateFeeSettings:GracePeriodDay");
+            _lateFeeAmount = config.GetValue<decimal>("LateFeeSettings:LateFeeAmount");
         }
 
         [HttpGet]
@@ -35,6 +55,259 @@ namespace SchoolPortal.API.Controllers
             return Ok(student);
         }
 
+        // Pulls together everything about one student that's otherwise
+        // scattered across the Fee Grid, Attendance, and Academics screens
+        // (each filtered by class, not by student) — the single "click on
+        // a student, see everything" view the rest of the app doesn't have.
+        // Every figure here is computed with the exact same formulas as its
+        // own dedicated screen, not a separate approximation, so nothing
+        // shown here can quietly disagree with what the Fee Grid or
+        // Attendance Register say for the same student.
+        [HttpGet("{id}/profile")]
+        public async Task<ActionResult<StudentProfileDto>> GetProfile(int id)
+        {
+            var student = await _context.Students
+                .Include(s => s.Class)
+                .Include(s => s.Parent)
+                .FirstOrDefaultAsync(s => s.StudentId == id);
+            if (student == null) return NotFound();
+
+            var now = DateTime.Now;
+
+            // --- Fees: same formula as the fee-grid/defaulters totals ---
+            var ledgers = await _context.FeeLedgers
+                .Where(l => l.StudentId == id && l.Year == now.Year)
+                .ToListAsync();
+            var applicableLedgers = ledgers
+                .Where(l => FeeCalculator.IsApplicableMonth(student.AdmissionDate, l.MonthNumber, l.Year))
+                .ToList();
+            var monthlyOutstanding = applicableLedgers.Sum(l => Math.Max(
+                (l.DueAmount - Math.Max(0, l.DiscountAmount) + FeeCalculator.GetLateFee(l, now, _gracePeriodDay, _lateFeeAmount)) - l.PaidAmount,
+                0));
+            var overdueMonthsCount = applicableLedgers.Count(l =>
+                FeeCalculator.GetEffectiveStatus(l, now, _gracePeriodDay) == "Overdue");
+
+            // SQLite's EF Core provider can't translate Sum() over a decimal
+            // expression into SQL (same limitation worked around elsewhere
+            // in this codebase, e.g. the dashboard's collection figure) —
+            // fetch the individual balances, then sum them in .NET instead.
+            var chargeBalances = await _context.StudentCharges
+                .Where(c => c.StudentId == id && c.Status != ChargeStatus.Paid)
+                .Select(c => (c.DueAmount - c.DiscountAmount) - c.PaidAmount)
+                .ToListAsync();
+            var chargesOutstanding = Math.Max(0, chargeBalances.Sum());
+
+            var recentLedgerPayments = await _context.Payments
+                .Where(p => p.Ledger != null && p.Ledger.StudentId == id)
+                .OrderByDescending(p => p.PaymentDate)
+                .Take(5)
+                .Select(p => new RecentPaymentDto
+                {
+                    PaymentDate = p.PaymentDate,
+                    AmountPaid = p.AmountPaid,
+                    PaidAgainst = "Tuition Fee",
+                    ReceiptNumber = p.ReceiptNumber
+                })
+                .ToListAsync();
+            var recentChargePayments = await _context.Payments
+                .Where(p => p.Charge != null && p.Charge.StudentId == id)
+                .OrderByDescending(p => p.PaymentDate)
+                .Take(5)
+                .Select(p => new RecentPaymentDto
+                {
+                    PaymentDate = p.PaymentDate,
+                    AmountPaid = p.AmountPaid,
+                    PaidAgainst = p.Charge!.ChargeType,
+                    ReceiptNumber = p.ReceiptNumber
+                })
+                .ToListAsync();
+            var recentPayments = recentLedgerPayments.Concat(recentChargePayments)
+                .OrderByDescending(p => p.PaymentDate)
+                .Take(5)
+                .ToList();
+
+            // --- Attendance: current calendar month, same logic as the
+            // dedicated summary endpoint, reused rather than duplicated ---
+            var attendanceSummary = await _attendanceService.GetStudentMonthlySummaryAsync(id, now.Month, now.Year);
+
+            // --- Academics: most recent exam this student has any results
+            // for. Exams have no date field, so ExamId (creation order) is
+            // used as the recency proxy — the same assumption a school
+            // would make by simply looking at which exam was entered last. ---
+            var latestExamId = await _context.Results
+                .Where(r => r.StudentId == id)
+                .OrderByDescending(r => r.ExamId)
+                .Select(r => (int?)r.ExamId)
+                .FirstOrDefaultAsync();
+
+            string? latestExamName = null, latestExamTerm = null, latestExamResult = null;
+            double? latestExamPercentage = null;
+            if (latestExamId.HasValue)
+            {
+                var reportCard = await _resultService.GetReportCardAsync(id, latestExamId.Value);
+                if (reportCard != null)
+                {
+                    latestExamName = reportCard.ExamName;
+                    latestExamTerm = reportCard.Term;
+                    latestExamPercentage = reportCard.OverallPercentage;
+                    latestExamResult = reportCard.OverallResult;
+                }
+            }
+
+            return Ok(new StudentProfileDto
+            {
+                SchoolName = _config["SchoolSettings:SchoolName"] ?? "",
+                CampusName = _config["SchoolSettings:CampusName"] ?? "",
+
+                StudentId = student.StudentId,
+                Name = student.Name,
+                RollNumber = student.RollNumber,
+                BFormNumber = student.BFormNumber,
+                DateOfBirth = student.DateOfBirth,
+                Gender = student.Gender,
+                AdmissionDate = student.AdmissionDate,
+                AdmissionStatus = student.AdmissionStatus.ToString(),
+                ClassId = student.ClassId,
+                ClassName = student.Class?.ClassName ?? "",
+                Section = student.Class?.Section ?? "",
+                HasPhoto = !string.IsNullOrEmpty(student.PhotoFileName),
+                FatherName = student.Parent?.FatherName ?? "",
+                FatherMobile = student.Parent?.FatherMobile ?? "",
+                MotherName = student.Parent?.MotherName,
+                MotherMobile = student.Parent?.MotherMobile,
+                MonthlyDiscountAmount = student.MonthlyDiscountAmount,
+                DiscountReason = student.DiscountReason,
+
+                TotalOutstanding = monthlyOutstanding + chargesOutstanding,
+                OverdueMonthsCount = overdueMonthsCount,
+                RecentPayments = recentPayments,
+
+                AttendanceMonth = now.Month,
+                AttendanceYear = now.Year,
+                PresentDays = attendanceSummary?.PresentDays ?? 0,
+                AbsentDays = attendanceSummary?.AbsentDays ?? 0,
+                LeaveDays = attendanceSummary?.LeaveDays ?? 0,
+                LateDays = attendanceSummary?.LateDays ?? 0,
+                AttendancePercentage = attendanceSummary?.AttendancePercentage ?? 0,
+
+                LatestExamName = latestExamName,
+                LatestExamTerm = latestExamTerm,
+                LatestExamPercentage = latestExamPercentage,
+                LatestExamResult = latestExamResult
+            });
+        }
+
+        // Photos live in a StudentPhotos folder resolved the same way as
+        // Backups — relative to wherever the live SQLite file actually is,
+        // not a hardcoded path, and never inside wwwroot. See the comment
+        // on Student.PhotoFileName for why wwwroot specifically is unsafe
+        // for this: build.bat deletes and recreates it on every production
+        // build, which would silently destroy every uploaded photo.
+        private string GetPhotoFolder()
+        {
+            var connection = (SqliteConnection)_context.Database.GetDbConnection();
+            var dbFolder = Path.GetDirectoryName(Path.GetFullPath(connection.DataSource)) ?? AppContext.BaseDirectory;
+            var photoFolder = Path.Combine(dbFolder, "StudentPhotos");
+            Directory.CreateDirectory(photoFolder);
+            return photoFolder;
+        }
+
+        private static readonly HashSet<string> AllowedPhotoContentTypes = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "image/jpeg", "image/png", "image/webp"
+        };
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{id}/photo")]
+        [RequestSizeLimit(5_000_000)] // 5MB — generous for a headshot, small enough to not bloat the database folder
+        public async Task<IActionResult> UploadPhoto(int id, IFormFile file)
+        {
+            var student = await _context.Students.FindAsync(id);
+            if (student == null) return NotFound();
+
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "No file uploaded." });
+
+            if (!AllowedPhotoContentTypes.Contains(file.ContentType))
+                return BadRequest(new { message = "Photo must be a JPEG, PNG, or WEBP image." });
+
+            var extension = file.ContentType.ToLowerInvariant() switch
+            {
+                "image/jpeg" => ".jpg",
+                "image/png" => ".png",
+                "image/webp" => ".webp",
+                _ => ".jpg"
+            };
+
+            // A fresh filename per upload (not a fixed {id}.jpg) so a
+            // browser never shows a stale cached photo after someone
+            // replaces it — the old file is deleted right after the new
+            // one is written, not before, so a failed upload never leaves
+            // the student with no photo at all.
+            var folder = GetPhotoFolder();
+            var oldFileName = student.PhotoFileName;
+            var newFileName = $"{id}_{DateTime.Now:yyyyMMddHHmmss}{extension}";
+            var newPath = Path.Combine(folder, newFileName);
+
+            using (var stream = new FileStream(newPath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            student.PhotoFileName = newFileName;
+            await _context.SaveChangesAsync();
+
+            if (!string.IsNullOrEmpty(oldFileName))
+            {
+                var oldPath = Path.Combine(folder, oldFileName);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    try { System.IO.File.Delete(oldPath); }
+                    catch { /* leftover old file is harmless clutter, not worth failing the request over */ }
+                }
+            }
+
+            return Ok(new { photoFileName = newFileName });
+        }
+
+        [HttpGet("{id}/photo")]
+        public async Task<IActionResult> GetPhoto(int id)
+        {
+            var student = await _context.Students.FindAsync(id);
+            if (student == null || string.IsNullOrEmpty(student.PhotoFileName)) return NotFound();
+
+            var path = Path.Combine(GetPhotoFolder(), student.PhotoFileName);
+            if (!System.IO.File.Exists(path)) return NotFound();
+
+            var contentType = Path.GetExtension(path).ToLowerInvariant() switch
+            {
+                ".png" => "image/png",
+                ".webp" => "image/webp",
+                _ => "image/jpeg"
+            };
+            return PhysicalFile(path, contentType);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}/photo")]
+        public async Task<IActionResult> DeletePhoto(int id)
+        {
+            var student = await _context.Students.FindAsync(id);
+            if (student == null) return NotFound();
+            if (string.IsNullOrEmpty(student.PhotoFileName)) return NoContent();
+
+            var path = Path.Combine(GetPhotoFolder(), student.PhotoFileName);
+            if (System.IO.File.Exists(path))
+            {
+                try { System.IO.File.Delete(path); }
+                catch { /* removing the DB reference below is what actually matters to the user */ }
+            }
+
+            student.PhotoFileName = null;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
@@ -43,6 +316,7 @@ namespace SchoolPortal.API.Controllers
         {
             if (!Enum.TryParse<AdmissionStatus>(dto.AdmissionStatus, out _))
                 return BadRequest(new { message = "Invalid AdmissionStatus. Must be Applied, Admitted, Withdrawn, Rejected, or Graduated." });
+
             try
             {
                 var created = await _studentService.CreateStudentAsync(dto);
@@ -52,6 +326,19 @@ namespace SchoolPortal.API.Controllers
             {
                 return Conflict(new { message = ex.Message });
             }
+        }
+
+        // Separate from the general student edit — see UpdateStudentAsync's
+        // comment on why changing class clears the roll number instead of
+        // silently keeping a stale one. This is the deliberate "assign a
+        // new one" action that follows.
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}/roll-number")]
+        public async Task<IActionResult> SetRollNumber(int id, SetRollNumberDto dto)
+        {
+            var (success, error) = await _studentService.SetRollNumberAsync(id, dto.RollNumber);
+            if (!success) return Conflict(new { message = error });
+            return NoContent();
         }
 
         // Blank workbook with headers, formatted example row, and a * on
@@ -140,19 +427,6 @@ namespace SchoolPortal.API.Controllers
         {
             var updated = await _studentService.SetDiscountAsync(id, dto.MonthlyDiscountAmount, dto.Reason, dto.ApplyToRemainingMonthsThisYear);
             if (!updated) return NotFound();
-            return NoContent();
-        }
-
-        [Authorize(Roles = "Admin")]
-        [HttpPut("{id}/roll-number")]
-        public async Task<IActionResult> SetRollNumber(int id, SetRollNumberDto dto)
-        {
-            var (success, error) = await _studentService.SetRollNumberAsync(id, dto.RollNumber);
-            if (!success)
-            {
-                if (error == "Student not found.") return NotFound();
-                return Conflict(new { message = error });
-            }
             return NoContent();
         }
     }

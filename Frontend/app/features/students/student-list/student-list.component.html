@@ -49,7 +49,7 @@
       @for (student of filteredStudents(); track student.studentId) {
         <tr>
           <td>{{ student.rollNumber ?? '—' }}</td>
-          <td>{{ student.name }}</td>
+          <td><a [routerLink]="['/students', student.studentId, 'profile']" class="name-link">{{ student.name }}</a></td>
           <td>{{ student.bFormNumber }}</td>
           <td>{{ student.className }}{{ student.section ? ' - ' + student.section : '' }}</td>
           <td>{{ student.fatherName }}</td>

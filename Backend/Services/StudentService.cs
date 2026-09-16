@@ -81,7 +81,7 @@ namespace SchoolPortal.API.Services
 
             var full = await _repository.GetByIdAsync(created.StudentId);
             return MapToDto(full!);
-
+           
         }
 
         public async Task<bool> UpdateStudentAsync(int id, UpdateStudentDto dto)
@@ -144,6 +144,7 @@ namespace SchoolPortal.API.Services
             ClassId = s.ClassId,
             ClassName = s.Class?.ClassName ?? "",
             Section = s.Class?.Section ?? "",
+            HasPhoto = !string.IsNullOrEmpty(s.PhotoFileName),
             ParentId = s.ParentId,
             FatherName = s.Parent?.FatherName ?? "",
             FatherMobile = s.Parent?.FatherMobile ?? "",
@@ -201,15 +202,5 @@ namespace SchoolPortal.API.Services
 
             return true;
         }
-    }
-
-    // Thrown when a caller requests a specific roll number (either on
-    // create or via SetRollNumberAsync) that's already assigned to
-    // another student — distinct from a generic failure so callers can
-    // report it as a 409 Conflict rather than a 500.
-    public class DuplicateRollNumberException : Exception
-    {
-        public DuplicateRollNumberException(int rollNumber)
-            : base($"Roll number {rollNumber} is already assigned to another student.") { }
     }
 }

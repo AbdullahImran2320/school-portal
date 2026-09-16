@@ -1,0 +1,151 @@
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.profile-card {
+  padding: 18px;
+
+  h2 {
+    font-size: 14px;
+    margin: 0 0 14px;
+    color: var(--text-primary);
+  }
+}
+
+dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  margin: 0;
+}
+
+dt {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+dd {
+  font-size: 13px;
+  margin: 0;
+  text-align: right;
+
+  a { color: var(--accent-text); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+}
+
+.stat-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+
+  &.stat-warning { color: var(--status-overdue); }
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 12px 0 6px;
+}
+
+.section-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.payment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+.payment-amount { font-weight: 600; }
+
+.card-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--accent-text);
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+.header-identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.photo-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.student-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-strong);
+}
+
+.photo-placeholder {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--surface-accent);
+  color: var(--accent-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.photo-upload-btn {
+  font-size: 11px;
+  color: var(--accent-text);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.photo-remove-btn {
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: var(--status-overdue);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.photo-error {
+  font-size: 12px;
+  color: var(--status-overdue);
+  margin: 4px 0 0;
+}

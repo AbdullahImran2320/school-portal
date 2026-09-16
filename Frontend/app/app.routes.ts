@@ -36,6 +36,16 @@ export const routes: Routes = [
   loadComponent: () => import('./features/students/student-form/student-form.component').then(m => m.StudentFormComponent),
   canActivate: [roleGuard(['Admin']), licenseGuard]
 },
+{
+  path: 'students/:id/profile',
+  loadComponent: () => import('./features/students/profile/profile.component').then(m => m.StudentProfileComponent),
+  canActivate: [roleGuard(['Admin', 'Accountant', 'Teacher']), licenseGuard]
+},
+{
+  path: 'students/:id/id-card',
+  loadComponent: () => import('./features/students/id-card/id-card.component').then(m => m.StudentIdCardComponent),
+  canActivate: [roleGuard(['Admin', 'Accountant', 'Teacher']), licenseGuard]
+},
      {
   path: 'fees',
   loadComponent: () => import('./features/fees/fee-grid/fee-grid.component').then(m => m.FeeGridComponent),

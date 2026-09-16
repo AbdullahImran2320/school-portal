@@ -1,0 +1,45 @@
+<div class="toolbar no-print">
+  <h1>Student ID Card</h1>
+  @if (profile()) { <button class="btn-primary" (click)="print()">Print</button> }
+</div>
+
+@if (loading()) {
+  <p class="state-message no-print">Loading…</p>
+} @else if (error()) {
+  <p class="state-message state-error no-print">{{ error() }}</p>
+} @else if (profile(); as p) {
+  <div class="card-sheet print-area">
+    <div class="id-card">
+      <div class="card-header">
+        <div class="card-seal">BGS</div>
+        <div class="card-school">
+          <div class="school-name">{{ p.schoolName }}</div>
+          <div class="campus-name">{{ p.campusName }}</div>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="card-photo">
+          @if (photoUrl()) {
+            <img [src]="photoUrl()" alt="{{ p.name }}" />
+          } @else {
+            <div class="photo-placeholder">{{ p.name.charAt(0) }}</div>
+          }
+        </div>
+        <div class="card-details">
+          <div class="detail-name">{{ p.name }}</div>
+          <div class="detail-row"><span>Roll No</span><span>{{ p.rollNumber ?? '—' }}</span></div>
+          <div class="detail-row"><span>Class</span><span>{{ p.className }}{{ p.section ? ' - ' + p.section : '' }}</span></div>
+          <div class="detail-row"><span>B-Form</span><span>{{ p.bFormNumber }}</span></div>
+          <div class="detail-row"><span>Father</span><span>{{ p.fatherName }}</span></div>
+          <div class="detail-row"><span>Contact</span><span>{{ p.fatherMobile }}</span></div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <div class="signature-line"></div>
+        <span>Principal's Signature</span>
+      </div>
+    </div>
+  </div>
+}

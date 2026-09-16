@@ -125,3 +125,10 @@
   display: flex;
   gap: 8px;
 }
+
+.name-link {
+  color: var(--accent-text);
+  text-decoration: none;
+  font-weight: 500;
+}
+.name-link:hover { text-decoration: underline; }

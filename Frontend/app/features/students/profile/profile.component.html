@@ -1,0 +1,110 @@
+@if (loading()) {
+  <p class="state-message">Loading…</p>
+} @else if (error()) {
+  <p class="state-message state-error">{{ error() }}</p>
+} @else if (profile(); as p) {
+  <div class="page-header">
+    <div class="header-identity">
+      <div class="photo-block">
+        @if (photoUrl()) {
+          <img [src]="photoUrl()" alt="{{ p.name }}" class="student-photo" />
+        } @else {
+          <div class="photo-placeholder">{{ p.name.charAt(0) }}</div>
+        }
+        @if (isAdmin()) {
+          <label class="photo-upload-btn">
+            {{ uploadingPhoto() ? 'Uploading…' : (photoUrl() ? 'Change' : 'Add Photo') }}
+            <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onPhotoSelected($event)" hidden />
+          </label>
+          @if (photoUrl()) {
+            <button type="button" class="photo-remove-btn" (click)="removePhoto()">Remove</button>
+          }
+        }
+      </div>
+      <div>
+        <h1>{{ p.name }}</h1>
+        <p class="page-subtitle">
+          {{ p.rollNumber ? 'Roll #' + p.rollNumber + ' — ' : '' }}{{ p.className }}{{ p.section ? ' - ' + p.section : '' }} · {{ p.admissionStatus }}
+        </p>
+        @if (photoError()) { <p class="photo-error">{{ photoError() }}</p> }
+      </div>
+    </div>
+    <a [routerLink]="['/students', p.studentId, 'edit']" class="btn-secondary">Edit Student</a>
+    <a [routerLink]="['/students', p.studentId, 'id-card']" class="btn-secondary">Print ID Card</a>
+  </div>
+
+  <div class="profile-grid">
+    <!-- Identity -->
+    <div class="table-card profile-card">
+      <h2>Details</h2>
+      <dl>
+        <dt>B-Form Number</dt><dd>{{ p.bFormNumber }}</dd>
+        <dt>Date of Birth</dt><dd>{{ p.dateOfBirth | date:'d MMM y' }}</dd>
+        <dt>Gender</dt><dd>{{ p.gender }}</dd>
+        <dt>Admission Date</dt><dd>{{ p.admissionDate | date:'d MMM y' }}</dd>
+        <dt>Father</dt><dd>{{ p.fatherName }} — <a [href]="telHref(p.fatherMobile)">{{ p.fatherMobile }}</a></dd>
+        @if (p.motherName) {
+          <dt>Mother</dt><dd>{{ p.motherName }}{{ p.motherMobile ? ' — ' + p.motherMobile : '' }}</dd>
+        }
+        @if (p.monthlyDiscountAmount > 0) {
+          <dt>Concession</dt><dd>Rs {{ p.monthlyDiscountAmount | number }}/month{{ p.discountReason ? ' — ' + p.discountReason : '' }}</dd>
+        }
+      </dl>
+    </div>
+
+    <!-- Fees -->
+    <div class="table-card profile-card">
+      <h2>Fees</h2>
+      <div class="stat-row">
+        <span class="stat-value" [class.stat-warning]="p.totalOutstanding > 0">Rs {{ p.totalOutstanding | number }}</span>
+        <span class="stat-label">Outstanding{{ p.overdueMonthsCount > 0 ? ' (' + p.overdueMonthsCount + ' month(s) overdue)' : '' }}</span>
+      </div>
+
+      @if (p.recentPayments.length > 0) {
+        <p class="section-label">Recent Payments</p>
+        <ul class="payment-list">
+          @for (pay of p.recentPayments; track pay.receiptNumber) {
+            <li>
+              <span>{{ pay.paymentDate | date:'d MMM y' }} — {{ pay.paidAgainst }}</span>
+              <span class="payment-amount">Rs {{ pay.amountPaid | number }}</span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="section-empty">No payments recorded yet.</p>
+      }
+
+      <a [routerLink]="['/fees']" class="card-link">Go to Fee Grid →</a>
+    </div>
+
+    <!-- Attendance -->
+    <div class="table-card profile-card">
+      <h2>Attendance — This Month</h2>
+      <div class="stat-row">
+        <span class="stat-value">{{ p.attendancePercentage | number:'1.0-0' }}%</span>
+        <span class="stat-label">Present rate</span>
+      </div>
+      <dl>
+        <dt>Present</dt><dd>{{ p.presentDays }}</dd>
+        <dt>Absent</dt><dd>{{ p.absentDays }}</dd>
+        <dt>Leave</dt><dd>{{ p.leaveDays }}</dd>
+        <dt>Late</dt><dd>{{ p.lateDays }}</dd>
+      </dl>
+      <a [routerLink]="['/attendance/register']" class="card-link">Go to Attendance Register →</a>
+    </div>
+
+    <!-- Academics -->
+    <div class="table-card profile-card">
+      <h2>Academics</h2>
+      @if (p.latestExamName) {
+        <div class="stat-row">
+          <span class="stat-value" [class.stat-warning]="p.latestExamResult === 'Fail'">{{ p.latestExamPercentage | number:'1.0-1' }}%</span>
+          <span class="stat-label">{{ p.latestExamName }}{{ p.latestExamTerm ? ' — ' + p.latestExamTerm : '' }} ({{ p.latestExamResult }})</span>
+        </div>
+      } @else {
+        <p class="section-empty">No exam results recorded yet.</p>
+      }
+      <a [routerLink]="['/academics/report-card']" class="card-link">Go to Report Card →</a>
+    </div>
+  </div>
+}

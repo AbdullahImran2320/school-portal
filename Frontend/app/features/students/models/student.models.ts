@@ -12,6 +12,7 @@ export interface StudentDto {
   classId: number;
   className: string;
   section: string;
+  hasPhoto: boolean;
   parentId: number;
   fatherName: string;
   fatherMobile: string;
