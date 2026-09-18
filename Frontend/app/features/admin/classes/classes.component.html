@@ -20,7 +20,14 @@
       [ngModel]="newClassName()"
       (ngModelChange)="newClassName.set($event)"
     />
-    <button class="btn-edit" (click)="createClass()" [disabled]="addingClass() || !newClassName().trim()">
+    <input
+      class="text-input"
+      style="max-width: 120px;"
+      placeholder="Roll no. code, e.g. C11"
+      [ngModel]="newClassCode()"
+      (ngModelChange)="newClassCode.set($event)"
+    />
+    <button class="btn-edit" (click)="createClass()" [disabled]="addingClass() || !newClassName().trim() || !newClassCode().trim()">
       Add Class
     </button>
     <button class="btn-cancel" (click)="labelsPanelOpen.set(!labelsPanelOpen())">
@@ -83,7 +90,14 @@
               <option [ngValue]="opt.name">{{ opt.name }}</option>
             }
           </select>
-          <button class="btn-save" (click)="addSection(group)" [disabled]="addingSection() || !newSectionName()">✓</button>
+          <input
+            class="text-input"
+            style="max-width: 120px;"
+            placeholder="Roll no. code, e.g. C10A"
+            [ngModel]="newSectionCode()"
+            (ngModelChange)="newSectionCode.set($event)"
+          />
+          <button class="btn-save" (click)="addSection(group)" [disabled]="addingSection() || !newSectionName() || !newSectionCode().trim()">✓</button>
           <button class="btn-cancel" (click)="cancelSectionForm()">✕</button>
         </div>
       }
@@ -92,6 +106,7 @@
         <thead>
           <tr>
             <th>Section</th>
+            <th>Roll No. Code</th>
             <th>Students</th>
             <th class="action-col">Action</th>
           </tr>
@@ -100,6 +115,23 @@
           @for (s of group.sections; track s.classId) {
             <tr>
               <td>{{ s.section || '(unsectioned)' }}</td>
+              <td>
+                @if (codeFormOpenFor() === s.classId) {
+                  <div class="section-form">
+                    <input
+                      class="text-input"
+                      style="max-width: 100px;"
+                      [ngModel]="editCodeInput()"
+                      (ngModelChange)="editCodeInput.set($event)"
+                    />
+                    <button class="btn-save" (click)="saveCode(s.classId)" [disabled]="savingCode() === s.classId || !editCodeInput().trim()">✓</button>
+                    <button class="btn-cancel" (click)="cancelCodeForm()">✕</button>
+                  </div>
+                } @else {
+                  <span class="self-note">{{ s.classCode || '(not set)' }}</span>
+                  <button class="btn-edit" (click)="openCodeForm(s.classId, s.classCode)" title="Set or change this section's roll number code">Edit</button>
+                }
+              </td>
               <td>{{ s.studentCount }}</td>
               <td class="action-col">
                 @if (s.studentCount > 0) {
@@ -125,7 +157,7 @@
             </tr>
             @if (moveFormOpenFor() === s.classId) {
               <tr>
-                <td colspan="3">
+                <td colspan="4">
                   <div class="add-class-card section-form move-form">
                     <span class="self-note">
                       Move {{ s.studentCount }} student(s) from {{ s.section || '(unsectioned)' }} to:

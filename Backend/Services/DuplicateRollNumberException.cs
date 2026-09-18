@@ -1,15 +1,16 @@
 namespace SchoolPortal.API.Services
 {
-    // Thrown when a roll number is explicitly assigned (create or
-    // SetRollNumberAsync) but another student already has it.
+    // Thrown when a roll number position is explicitly assigned (create or
+    // SetRollNumberAsync) but another student in the same class already
+    // has that position.
     public class DuplicateRollNumberException : Exception
     {
-        public int RollNumber { get; }
+        public int RollNumberSequence { get; }
 
-        public DuplicateRollNumberException(int rollNumber)
-            : base($"Roll number {rollNumber} is already assigned to another student.")
+        public DuplicateRollNumberException(int rollNumberSequence)
+            : base($"Position {rollNumberSequence} is already taken by another student in this class.")
         {
-            RollNumber = rollNumber;
+            RollNumberSequence = rollNumberSequence;
         }
     }
 }

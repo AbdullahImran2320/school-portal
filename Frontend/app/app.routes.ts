@@ -132,6 +132,11 @@ export const routes: Routes = [
   canActivate: [roleGuard(['Admin']), licenseGuard]
 },
 {
+  path: 'admin/roll-number-settings',
+  loadComponent: () => import('./features/admin/roll-number-settings/roll-number-settings.component').then(m => m.RollNumberSettingsComponent),
+  canActivate: [roleGuard(['Admin']), licenseGuard]
+},
+{
   path: 'admin/audit-log',
   loadComponent: () => import('./features/admin/audit-log/audit-log.component').then(m => m.AuditLogComponent),
   canActivate: [roleGuard(['Admin']), licenseGuard]

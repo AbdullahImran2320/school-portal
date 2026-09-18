@@ -52,3 +52,8 @@ export interface PromotionResultDto {
   unresolvedSections: UnresolvedPromotionDto[];
   errors: string[];
 }
+
+export interface RollNumberSettingsDto {
+  prefix: string;
+  sequenceDigits: number;
+}

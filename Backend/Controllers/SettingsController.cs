@@ -60,5 +60,53 @@ namespace SchoolPortal.API.Controllers
                 PaymentTermsLine2 = settings.PaymentTermsLine2
             });
         }
+
+        // The globally-editable parts of the roll number format — the
+        // prefix letter(s) and how many digits the sequence pads to. The
+        // rest of the format (each class's code, and each student's own
+        // admission year) lives on the class/student rows themselves, not
+        // here. Same singleton-row pattern as Challan Settings above.
+        [HttpGet("roll-number")]
+        [Authorize(Roles = "Admin,Accountant,Teacher")]
+        public async Task<ActionResult<RollNumberSettingsDto>> GetRollNumberSettings()
+        {
+            var settings = await _context.RollNumberSettings.FirstOrDefaultAsync();
+            if (settings == null)
+            {
+                // Created with defaults on first read, same as
+                // StudentService.GetOrCreateRollNumberSettingsAsync — a
+                // student can be created (and thus need these settings)
+                // before the Admin ever visits this screen.
+                settings = new RollNumberSettings();
+                _context.RollNumberSettings.Add(settings);
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(new RollNumberSettingsDto { Prefix = settings.Prefix, SequenceDigits = settings.SequenceDigits });
+        }
+
+        [HttpPut("roll-number")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<RollNumberSettingsDto>> UpdateRollNumberSettings(UpdateRollNumberSettingsDto dto)
+        {
+            var settings = await _context.RollNumberSettings.FirstOrDefaultAsync();
+            if (settings == null)
+            {
+                settings = new RollNumberSettings();
+                _context.RollNumberSettings.Add(settings);
+            }
+
+            settings.Prefix = dto.Prefix.Trim();
+            settings.SequenceDigits = dto.SequenceDigits;
+
+            await _context.SaveChangesAsync();
+
+            // Changing these does not retroactively reformat already-issued
+            // roll numbers — same as changing ChallanSettings doesn't
+            // reprint old challans. Existing students keep their current
+            // codes; only newly generated/regenerated ones use the new
+            // prefix/padding.
+            return Ok(new RollNumberSettingsDto { Prefix = settings.Prefix, SequenceDigits = settings.SequenceDigits });
+        }
     }
 }

@@ -45,7 +45,10 @@ export class StudentFormComponent implements OnInit {
   // Roll number is a separate action from the general edit (matches the
   // backend's own separation — see StudentsService.setRollNumber) so it has
   // its own input, its own submit button, and its own error state.
-  currentRollNumber = signal<number | null>(null);
+  // currentRollNumber is the formatted code shown read-only; the input
+  // below it is a position within the student's own class/section, not
+  // the code itself — the code is always regenerated from that position.
+  currentRollNumber = signal<string | null>(null);
   originalClassId = signal<number | null>(null);
   newRollNumberInput = signal<string>('');
   rollNumberSaving = signal(false);
@@ -60,7 +63,9 @@ export class StudentFormComponent implements OnInit {
 
   studentForm = this.fb.group({
     name: ['', Validators.required],
-    rollNumber: [null as number | null], // create mode only — blank auto-assigns
+    // create mode only — blank auto-assigns the next position in the
+    // chosen class/section; this is a position, not the formatted code.
+    rollNumberSequence: [null as number | null],
     bFormNumber: ['', [Validators.required, Validators.pattern(/^\d{5}-\d{7}-\d{1}$/)]],
     dateOfBirth: ['', Validators.required],
     gender: ['', Validators.required],
@@ -204,7 +209,7 @@ export class StudentFormComponent implements OnInit {
     const formValue = this.studentForm.getRawValue();
     const dto: CreateStudentDto = {
       name: formValue.name!,
-      rollNumber: formValue.rollNumber ?? undefined,
+      rollNumberSequence: formValue.rollNumberSequence ?? undefined,
       bFormNumber: formValue.bFormNumber!,
       dateOfBirth: formValue.dateOfBirth!,
       gender: formValue.gender!,
@@ -258,7 +263,13 @@ export class StudentFormComponent implements OnInit {
     this.rollNumberSaving.set(true);
     this.studentsService.setRollNumber(this.studentId()!, value).subscribe({
       next: () => {
-        this.currentRollNumber.set(value);
+        // The endpoint returns no body (it may have reordered classmates
+        // too), so the freshly-generated formatted code is re-fetched
+        // rather than guessed at from the position just submitted.
+        this.studentsService.getById(this.studentId()!).subscribe({
+          next: (student) => this.currentRollNumber.set(student.rollNumber),
+          error: () => {}
+        });
         this.newRollNumberInput.set('');
         this.rollNumberSaving.set(false);
         this.rollNumberSaved.set(true);
@@ -266,9 +277,7 @@ export class StudentFormComponent implements OnInit {
       error: (err) => {
         this.rollNumberSaving.set(false);
         this.rollNumberError.set(
-          err?.status === 409
-            ? (err?.error?.message ?? 'That roll number is already assigned to another student.')
-            : 'Could not save the roll number. Try again.'
+          err?.error?.message ?? 'Could not save the roll number. Try again.'
         );
       }
     });

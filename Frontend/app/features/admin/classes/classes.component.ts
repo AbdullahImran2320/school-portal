@@ -27,12 +27,19 @@ export class ClassesComponent implements OnInit {
 
   // Add-class form
   newClassName = signal('');
+  newClassCode = signal('');
   addingClass = signal(false);
 
   // Add-section form (per group, keyed by className so multiple rows can't clash)
   sectionFormOpenFor = signal<string | null>(null);
   newSectionName = signal<string>('');
+  newSectionCode = signal<string>('');
   addingSection = signal(false);
+
+  // Inline class-code edit (per row, keyed by classId)
+  codeFormOpenFor = signal<number | null>(null);
+  editCodeInput = signal<string>('');
+  savingCode = signal<number | null>(null);
 
   // Section-label list management
   newLabelName = signal('');
@@ -89,13 +96,15 @@ export class ClassesComponent implements OnInit {
 
   createClass() {
     const name = this.newClassName().trim();
-    if (!name) return;
+    const code = this.newClassCode().trim();
+    if (!name || !code) return;
 
     this.actionError.set(null);
     this.addingClass.set(true);
-    this.classesService.createClass({ className: name, academicYear: this.academicYear() }).subscribe({
+    this.classesService.createClass({ className: name, academicYear: this.academicYear(), classCode: code }).subscribe({
       next: () => {
         this.newClassName.set('');
+        this.newClassCode.set('');
         this.addingClass.set(false);
         this.loadAll();
       },
@@ -109,6 +118,7 @@ export class ClassesComponent implements OnInit {
   openSectionForm(group: ClassGroupDto) {
     this.sectionFormOpenFor.set(group.className);
     this.newSectionName.set('');
+    this.newSectionCode.set('');
   }
 
   cancelSectionForm() {
@@ -117,14 +127,16 @@ export class ClassesComponent implements OnInit {
 
   addSection(group: ClassGroupDto) {
     const section = this.newSectionName();
-    if (!section) return;
+    const code = this.newSectionCode().trim();
+    if (!section || !code) return;
 
     this.actionError.set(null);
     this.addingSection.set(true);
     this.classesService.addSection({
       className: group.className,
       academicYear: group.academicYear,
-      section
+      section,
+      classCode: code
     }).subscribe({
       next: () => {
         this.sectionFormOpenFor.set(null);
@@ -134,6 +146,35 @@ export class ClassesComponent implements OnInit {
       error: (err) => {
         this.actionError.set(err?.error ?? `Could not add section to '${group.className}'.`);
         this.addingSection.set(false);
+      }
+    });
+  }
+
+  openCodeForm(classId: number, currentCode: string) {
+    this.actionError.set(null);
+    this.codeFormOpenFor.set(classId);
+    this.editCodeInput.set(currentCode);
+  }
+
+  cancelCodeForm() {
+    this.codeFormOpenFor.set(null);
+  }
+
+  saveCode(classId: number) {
+    const code = this.editCodeInput().trim();
+    if (!code) return;
+
+    this.actionError.set(null);
+    this.savingCode.set(classId);
+    this.classesService.updateClassCode(classId, { classCode: code }).subscribe({
+      next: () => {
+        this.savingCode.set(null);
+        this.codeFormOpenFor.set(null);
+        this.loadAll();
+      },
+      error: (err) => {
+        this.savingCode.set(null);
+        this.actionError.set(err?.error ?? 'Could not save the roll number code.');
       }
     });
   }

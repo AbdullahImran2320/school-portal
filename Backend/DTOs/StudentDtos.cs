@@ -6,7 +6,13 @@ namespace SchoolPortal.API.DTOs
     {
         public int StudentId { get; set; }
         public string Name { get; set; } = string.Empty;
-        public int? RollNumber { get; set; }
+        public string? RollNumber { get; set; }
+        // The raw position within the student's class/section that the
+        // formatted RollNumber above was built from — this, not the
+        // formatted string, is what an editable "roll number" input should
+        // actually read and write (see StudentsController's roll-number
+        // endpoint).
+        public int? RollNumberSequence { get; set; }
         public string BFormNumber { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
         public string Gender { get; set; } = string.Empty;
@@ -30,11 +36,14 @@ public class CreateStudentDto
         [Required, StringLength(100, MinimumLength = 2)]
         public string Name { get; set; } = string.Empty;
 
-        // Left null to auto-assign the next available number in admission
-        // order; set explicitly to skip auto-assignment (e.g. re-entering a
-        // student whose paper roll number is already fixed).
-        [Range(1, int.MaxValue, ErrorMessage = "Roll number must be positive")]
-        public int? RollNumber { get; set; }
+        // Left null to auto-assign the next available position in this
+        // student's class/section; set explicitly to skip auto-assignment
+        // (e.g. re-entering a student whose paper roll number is already
+        // fixed). This is a position within the class, not the formatted
+        // code itself — the formatted RollNumber is always generated from
+        // it, the class's ClassCode, and the roll number settings.
+        [Range(1, int.MaxValue, ErrorMessage = "Roll number position must be positive")]
+        public int? RollNumberSequence { get; set; }
 
         [Required, RegularExpression(@"^\d{5}-\d{7}-\d{1}$", ErrorMessage = "B-Form number must be in format 12345-1234567-1")]
         public string BFormNumber { get; set; } = string.Empty;
@@ -80,12 +89,25 @@ public class CreateStudentDto
 
     // Deliberately separate from UpdateStudentDto — same reasoning as why
     // ParentId isn't editable through the general update: assigning a roll
-    // number is its own distinct action with its own validation (uniqueness
-    // school-wide), not a side effect of an unrelated field edit.
+    // number is its own distinct action with its own validation, not a
+    // side effect of an unrelated field edit. The value here is a position
+    // within the student's own class/section (see SetRollNumberAsync) —
+    // moving them to a new position shifts their classmates by one, the
+    // same as before, just scoped to the class instead of the whole school.
     public class SetRollNumberDto
     {
-        [Range(1, int.MaxValue, ErrorMessage = "Roll number must be positive")]
-        public int RollNumber { get; set; }
+        [Range(1, int.MaxValue, ErrorMessage = "Roll number position must be positive")]
+        public int RollNumberSequence { get; set; }
+    }
+
+    public class AssignRollNumbersResultDto
+    {
+        public int AssignedCount { get; set; }
+        // Students whose class doesn't have a ClassCode set yet — a
+        // formatted roll number can't be built for them until the Admin
+        // sets one in Manage Classes, so they're reported here instead of
+        // silently skipped or failing the whole batch.
+        public int SkippedNoClassCodeCount { get; set; }
     }
 
     public class SetDiscountDto

@@ -36,7 +36,7 @@ export interface AttendanceRegisterCell {
 export interface AttendanceRegisterRow {
   studentId: number;
   studentName: string;
-  rollNumber: number | null;
+  rollNumber: string | null;
   days: AttendanceRegisterCell[];
   presentCount: number;
   absentCount: number;

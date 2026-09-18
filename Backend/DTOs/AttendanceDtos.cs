@@ -57,7 +57,7 @@ namespace SchoolPortal.API.DTOs
     {
         public int StudentId { get; set; }
         public string StudentName { get; set; } = string.Empty;
-        public int? RollNumber { get; set; }
+        public string? RollNumber { get; set; }
         public List<AttendanceRegisterCellDto> Days { get; set; } = new();
         public int PresentCount { get; set; }
         public int AbsentCount { get; set; }

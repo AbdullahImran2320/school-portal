@@ -1,0 +1,35 @@
+<app-admin-nav />
+<div class="page-header">
+  <h1>Roll Number Settings</h1>
+  <p class="page-subtitle">The prefix and sequence padding used to build every student's roll number. Each class's own code is set in Manage Classes.</p>
+</div>
+
+@if (loading()) {
+  <p class="state-message">Loading...</p>
+} @else {
+  @if (error()) { <p class="state-message state-error">{{ error() }}</p> }
+
+  <div class="table-card settings-form">
+    <label>Prefix
+      <input class="text-input" maxlength="10" [ngModel]="prefix()" (ngModelChange)="prefix.set($event)" />
+    </label>
+    <label>Sequence Digits
+      <input class="text-input" type="number" min="1" max="6" [ngModel]="sequenceDigits()" (ngModelChange)="sequenceDigits.set($event)" />
+      <span class="hint-text">How many digits the sequence number pads to, e.g. 3 → "001".</span>
+    </label>
+
+    <div class="example-preview">
+      <span class="example-label">Example roll number</span>
+      <span class="example-value">{{ examplePreview() }}</span>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-primary" (click)="save()" [disabled]="saving()">Save</button>
+      @if (saved()) { <span class="saved-note">Saved</span> }
+    </div>
+  </div>
+
+  <p class="state-message">
+    Changing these does not retroactively reformat roll numbers already issued to students — only newly generated or regenerated ones use the new prefix/padding.
+  </p>
+}

@@ -132,3 +132,27 @@
   font-weight: 500;
 }
 .name-link:hover { text-decoration: underline; }
+
+.roll-number-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.roll-number-code {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.roll-number-input {
+  width: 56px;
+  padding: 4px 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 13px;
+
+  &:disabled { opacity: 0.5; }
+}

@@ -326,19 +326,110 @@ namespace SchoolPortal.API.Controllers
             {
                 return Conflict(new { message = ex.Message });
             }
+            catch (RollNumberGenerationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         // Separate from the general student edit — see UpdateStudentAsync's
         // comment on why changing class clears the roll number instead of
         // silently keeping a stale one. This is the deliberate "assign a
-        // new one" action that follows.
+        // new one" action that follows. The value here is a position
+        // within the student's own class/section, not the formatted code
+        // itself — the formatted code is always regenerated from it.
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}/roll-number")]
         public async Task<IActionResult> SetRollNumber(int id, SetRollNumberDto dto)
         {
-            var (success, error) = await _studentService.SetRollNumberAsync(id, dto.RollNumber);
-            if (!success) return Conflict(new { message = error });
+            var (success, error) = await _studentService.SetRollNumberAsync(id, dto.RollNumberSequence);
+            if (!success)
+            {
+                // "Already taken" can no longer happen (SetRollNumberAsync
+                // reorders instead of rejecting), so the only failures left
+                // are genuine 400/404 cases, not conflicts.
+                return error == "Student not found."
+                    ? NotFound(new { message = error })
+                    : BadRequest(new { message = error });
+            }
             return NoContent();
+        }
+
+        // For onboarding a school that already has enrolled students:
+        // roll numbers only ever auto-assign at creation time, so anyone
+        // who existed before that feature (or was bulk-imported before a
+        // number was set) has none. This assigns sequential positions, in
+        // admission-date order, to every currently-admitted student
+        // missing one — per class, since a formatted code's sequence only
+        // has meaning within its own class/section. Safe to run more than
+        // once, since it only ever touches students that still have no
+        // number. Students in a class with no ClassCode set yet are
+        // skipped (reported separately) rather than failing the whole run.
+        [Authorize(Roles = "Admin")]
+        [HttpPost("assign-missing-roll-numbers")]
+        public async Task<ActionResult<AssignRollNumbersResultDto>> AssignMissingRollNumbers()
+        {
+            var settings = await _context.RollNumberSettings.FirstOrDefaultAsync();
+            if (settings == null)
+            {
+                settings = new SchoolPortal.API.Models.RollNumberSettings();
+                _context.RollNumberSettings.Add(settings);
+                await _context.SaveChangesAsync();
+            }
+
+            var studentsNeedingNumbers = await _context.Students
+                .Include(s => s.Class)
+                .Where(s => s.RollNumber == null && s.AdmissionStatus == AdmissionStatus.Admitted)
+                .OrderBy(s => s.AdmissionDate)
+                .ThenBy(s => s.StudentId)
+                .ToListAsync();
+
+            if (studentsNeedingNumbers.Count == 0)
+                return Ok(new AssignRollNumbersResultDto { AssignedCount = 0, SkippedNoClassCodeCount = 0 });
+
+            var assignedCount = 0;
+            var skippedCount = 0;
+
+            // Group by class so each class's next position picks up after
+            // whatever that class's highest existing position already is,
+            // rather than everyone starting from 1 and colliding.
+            foreach (var group in studentsNeedingNumbers.GroupBy(s => s.ClassId))
+            {
+                var schoolClass = group.First().Class;
+                if (schoolClass == null || string.IsNullOrWhiteSpace(schoolClass.ClassCode))
+                {
+                    skippedCount += group.Count();
+                    continue;
+                }
+
+                var nextSequence = (await _context.Students
+                    .Where(s => s.ClassId == group.Key && s.RollNumberSequence != null)
+                    .MaxAsync(s => (int?)s.RollNumberSequence)) ?? 0;
+                nextSequence++;
+
+                foreach (var student in group)
+                {
+                    student.RollNumberSequence = nextSequence;
+                    student.RollNumber = BuildRollNumberCodeForAssignment(settings, student.AdmissionDate, schoolClass.ClassCode, nextSequence);
+                    nextSequence++;
+                    assignedCount++;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new AssignRollNumbersResultDto { AssignedCount = assignedCount, SkippedNoClassCodeCount = skippedCount });
+        }
+
+        // Mirrors StudentService's private BuildRollNumberCode — duplicated
+        // here rather than exposed from the service because this bulk-assign
+        // action queries/updates students directly for grouping efficiency
+        // instead of going through the service's one-student-at-a-time API.
+        private static string BuildRollNumberCodeForAssignment(SchoolPortal.API.Models.RollNumberSettings settings, DateTime admissionDate, string classCode, int sequence)
+        {
+            var yearSuffix = (admissionDate.Year % 100).ToString("D2");
+            var paddedSequence = sequence.ToString().PadLeft(Math.Max(1, settings.SequenceDigits), '0');
+            return $"{settings.Prefix}{yearSuffix}{classCode}{paddedSequence}";
         }
 
         // Blank workbook with headers, formatted example row, and a * on

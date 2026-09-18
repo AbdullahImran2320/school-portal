@@ -10,7 +10,7 @@ export interface StudentProfile {
   campusName: string;
   studentId: number;
   name: string;
-  rollNumber: number | null;
+  rollNumber: string | null;
   bFormNumber: string;
   dateOfBirth: string;
   gender: string;

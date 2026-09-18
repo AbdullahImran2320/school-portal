@@ -26,6 +26,7 @@ namespace SchoolPortal.API.Data
         public DbSet<LicenseInfo> LicenseInfos { get; set; }
         public DbSet<SectionOption> SectionOptions { get; set; }
         public DbSet<ChallanSettings> ChallanSettings { get; set; }
+        public DbSet<RollNumberSettings> RollNumberSettings { get; set; }
 
         private readonly IHttpContextAccessor? _httpContextAccessor;
 

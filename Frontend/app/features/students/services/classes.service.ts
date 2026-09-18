@@ -6,6 +6,7 @@ import {
   ClassGroupDto,
   CreateClassDto,
   AddSectionDto,
+  UpdateClassCodeDto,
   SectionOptionDto,
   CreateSectionOptionDto
 } from '../models/class.models';
@@ -30,6 +31,10 @@ export class ClassesService {
 
   addSection(dto: AddSectionDto) {
     return this.http.post<ClassDto>(`${this.baseUrl}/sections`, dto);
+  }
+
+  updateClassCode(classId: number, dto: UpdateClassCodeDto) {
+    return this.http.put<ClassDto>(`${this.baseUrl}/${classId}/code`, dto);
   }
 
   deleteSection(classId: number) {

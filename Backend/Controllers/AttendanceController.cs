@@ -85,7 +85,7 @@ namespace SchoolPortal.API.Controllers
 
             var students = await _context.Students
                 .Where(s => s.ClassId == classId && s.AdmissionStatus == AdmissionStatus.Admitted)
-                .OrderBy(s => s.RollNumber ?? int.MaxValue)
+                .OrderBy(s => s.RollNumberSequence ?? int.MaxValue)
                 .ThenBy(s => s.Name)
                 .ToListAsync();
 

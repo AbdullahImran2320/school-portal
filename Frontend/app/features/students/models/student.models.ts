@@ -3,7 +3,11 @@ export type AdmissionStatus = 'Applied' | 'Admitted' | 'Withdrawn' | 'Rejected' 
 export interface StudentDto {
   studentId: number;
   name: string;
-  rollNumber: number | null;
+  rollNumber: string | null;
+  // Position within this student's own class/section — what an editable
+  // roll number input reads and writes; rollNumber (the formatted code
+  // above) is always regenerated from it, never typed directly.
+  rollNumberSequence: number | null;
   bFormNumber: string;
   dateOfBirth: string;
   gender: string;
@@ -22,9 +26,9 @@ export interface StudentDto {
 
 export interface CreateStudentDto {
   name: string;
-  // Leave undefined to auto-assign the next available number in admission
-  // order; set explicitly to skip auto-assignment.
-  rollNumber?: number;
+  // Leave undefined to auto-assign the next available position in this
+  // student's class/section; set explicitly to skip auto-assignment.
+  rollNumberSequence?: number;
   bFormNumber: string;
   dateOfBirth: string;
   gender: string;

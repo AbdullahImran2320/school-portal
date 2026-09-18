@@ -29,6 +29,16 @@ export class StudentListComponent implements OnInit {
     );
   });
 
+  missingRollNumberCount = computed(() =>
+    this.students().filter(s => s.rollNumber == null && s.admissionStatus === 'Admitted').length
+  );
+
+  assigningRollNumbers = signal(false);
+  assignRollNumbersMessage = signal<string | null>(null);
+
+  savingRollNumberFor = signal<number | null>(null);
+  rollNumberError = signal<string | null>(null);
+
   constructor(private studentsService: StudentsService, public auth: AuthService) {}
 
   ngOnInit() {
@@ -52,6 +62,63 @@ export class StudentListComponent implements OnInit {
 
   isAdmin() {
     return this.auth.role() === 'Admin';
+  }
+
+  assignRollNumbers() {
+    this.assigningRollNumbers.set(true);
+    this.assignRollNumbersMessage.set(null);
+    this.studentsService.assignMissingRollNumbers().subscribe({
+      next: (result) => {
+        this.assigningRollNumbers.set(false);
+        const parts: string[] = [];
+        parts.push(
+          result.assignedCount > 0
+            ? `Assigned roll numbers to ${result.assignedCount} student(s).`
+            : 'Everyone already has a roll number.'
+        );
+        if (result.skippedNoClassCodeCount > 0) {
+          parts.push(`${result.skippedNoClassCodeCount} student(s) skipped — their class has no roll number code set yet.`);
+        }
+        this.assignRollNumbersMessage.set(parts.join(' '));
+        this.loadStudents(); // refresh so the new numbers show in the table immediately
+      },
+      error: () => {
+        this.assigningRollNumbers.set(false);
+        this.assignRollNumbersMessage.set('Could not assign roll numbers. Try again.');
+      }
+    });
+  }
+
+  // Edited directly in the table (a number input per row, admin only) —
+  // the student's position within their own class/section, not the
+  // formatted code itself. Saving reorders every classmate who already
+  // has a position — moving this one to a new spot shifts everyone
+  // between the old and new position by one, the same as dragging an
+  // item to a new position in an ordered list — so the WHOLE table is
+  // reloaded after saving, not just this one row, since other rows'
+  // positions (and formatted codes) likely changed too.
+  onRollNumberChanged(student: StudentDto, rawValue: string) {
+    const value = Number(rawValue);
+    if (!rawValue || !Number.isInteger(value) || value < 1) {
+      this.rollNumberError.set('Roll number position must be a whole number greater than 0.');
+      this.loadStudents(); // snap the input back to the real stored value
+      return;
+    }
+    if (value === student.rollNumberSequence) return; // unchanged, nothing to save
+
+    this.rollNumberError.set(null);
+    this.savingRollNumberFor.set(student.studentId);
+    this.studentsService.setRollNumber(student.studentId, value).subscribe({
+      next: () => {
+        this.savingRollNumberFor.set(null);
+        this.loadStudents();
+      },
+      error: (err) => {
+        this.savingRollNumberFor.set(null);
+        this.rollNumberError.set(err?.error?.message ?? 'Could not update roll number.');
+        this.loadStudents(); // snap back to the real value on failure too
+      }
+    });
   }
 
   deleteStudent(student: StudentDto) {

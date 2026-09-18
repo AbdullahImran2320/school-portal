@@ -17,7 +17,7 @@ namespace SchoolPortal.API.DTOs
         // Identity
         public int StudentId { get; set; }
         public string Name { get; set; } = string.Empty;
-        public int? RollNumber { get; set; }
+        public string? RollNumber { get; set; }
         public string BFormNumber { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
         public string Gender { get; set; } = string.Empty;

@@ -49,9 +49,15 @@ export class StudentsService {
 
   // Deliberately separate from update() — matches the backend's own
   // separation: assigning a roll number is its own action with its own
-  // uniqueness check, not a side effect of an unrelated field edit.
-  setRollNumber(id: number, rollNumber: number) {
-    return this.http.put<void>(`${this.baseUrl}/${id}/roll-number`, { rollNumber });
+  // reorder logic, not a side effect of an unrelated field edit. The value
+  // is a position within the student's own class/section, not the
+  // formatted code — the formatted code is always regenerated from it.
+  setRollNumber(id: number, rollNumberSequence: number) {
+    return this.http.put<void>(`${this.baseUrl}/${id}/roll-number`, { rollNumberSequence });
+  }
+
+  assignMissingRollNumbers() {
+    return this.http.post<{ assignedCount: number; skippedNoClassCodeCount: number }>(`${this.baseUrl}/assign-missing-roll-numbers`, {});
   }
 
   delete(id: number) {

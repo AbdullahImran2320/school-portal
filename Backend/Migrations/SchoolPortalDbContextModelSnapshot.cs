@@ -110,6 +110,24 @@ namespace SchoolPortal.API.Migrations
                     b.ToTable("ChallanSettings");
                 });
 
+            modelBuilder.Entity("SchoolPortal.API.Models.RollNumberSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Prefix")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SequenceDigits")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RollNumberSettings");
+                });
+
             modelBuilder.Entity("SchoolPortal.API.Models.Exam", b =>
                 {
                     b.Property<int>("ExamId")
@@ -384,6 +402,10 @@ namespace SchoolPortal.API.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ClassCode")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.HasKey("ClassId");
 
                     b.HasIndex("ClassName", "Section", "AcademicYear")
@@ -453,7 +475,10 @@ namespace SchoolPortal.API.Migrations
                     b.Property<string>("PhotoFileName")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("RollNumber")
+                    b.Property<string>("RollNumber")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("RollNumberSequence")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("StudentId");

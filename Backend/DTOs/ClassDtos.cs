@@ -11,6 +11,7 @@ namespace SchoolPortal.API.DTOs
         public string AcademicYear { get; set; } = string.Empty;
         public int PromotionOrder { get; set; }
         public int StudentCount { get; set; }
+        public string ClassCode { get; set; } = string.Empty;
     }
 
     // Groups every SchoolClass row that shares a ClassName — one entry per
@@ -31,6 +32,13 @@ namespace SchoolPortal.API.DTOs
 
         [Required]
         public string AcademicYear { get; set; } = string.Empty;
+
+        // Short code used to build this class's students' roll numbers,
+        // e.g. "PGA" for Playgroup-A. Required up front — a class can't
+        // silently sit with no code and later produce unformattable roll
+        // numbers.
+        [Required, MaxLength(10)]
+        public string ClassCode { get; set; } = string.Empty;
     }
 
     public class AddSectionDto
@@ -43,6 +51,15 @@ namespace SchoolPortal.API.DTOs
 
         [Required, MaxLength(50)]
         public string Section { get; set; } = string.Empty;
+
+        [Required, MaxLength(10)]
+        public string ClassCode { get; set; } = string.Empty;
+    }
+
+    public class UpdateClassCodeDto
+    {
+        [Required, MaxLength(10)]
+        public string ClassCode { get; set; } = string.Empty;
     }
 
     public class SectionOptionDto

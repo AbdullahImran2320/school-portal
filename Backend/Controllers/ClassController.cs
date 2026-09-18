@@ -32,6 +32,7 @@ namespace SchoolPortal.API.Controllers
                     Section = c.Section,
                     AcademicYear = c.AcademicYear,
                     PromotionOrder = c.PromotionOrder,
+                    ClassCode = c.ClassCode,
                     StudentCount = c.Students.Count(s => s.AdmissionStatus == AdmissionStatus.Admitted)
                 })
                 .ToListAsync();
@@ -74,6 +75,7 @@ namespace SchoolPortal.API.Controllers
                     Section = c.Section,
                     AcademicYear = c.AcademicYear,
                     PromotionOrder = c.PromotionOrder,
+                    ClassCode = c.ClassCode,
                     StudentCount = c.Students.Count(s => s.AdmissionStatus == AdmissionStatus.Admitted)
                 })
                 .ToListAsync();
@@ -89,11 +91,16 @@ namespace SchoolPortal.API.Controllers
         public async Task<ActionResult<ClassDto>> CreateClass(CreateClassDto dto)
         {
             var name = dto.ClassName.Trim();
+            var code = dto.ClassCode.Trim();
 
             var exists = await _context.Classes
                 .AnyAsync(c => c.ClassName == name && c.AcademicYear == dto.AcademicYear);
             if (exists)
                 return Conflict($"'{name}' already exists for {dto.AcademicYear}.");
+
+            var codeTaken = await _context.Classes.AnyAsync(c => c.ClassCode == code);
+            if (codeTaken)
+                return Conflict($"Roll number code '{code}' is already used by another class. Each class needs its own code.");
 
             var nextOrder = await _context.Classes.AnyAsync()
                 ? await _context.Classes.MaxAsync(c => c.PromotionOrder) + 1
@@ -104,7 +111,8 @@ namespace SchoolPortal.API.Controllers
                 ClassName = name,
                 Section = "",
                 AcademicYear = dto.AcademicYear,
-                PromotionOrder = nextOrder
+                PromotionOrder = nextOrder,
+                ClassCode = code
             };
 
             _context.Classes.Add(newClass);
@@ -117,6 +125,7 @@ namespace SchoolPortal.API.Controllers
                 Section = newClass.Section,
                 AcademicYear = newClass.AcademicYear,
                 PromotionOrder = newClass.PromotionOrder,
+                ClassCode = newClass.ClassCode,
                 StudentCount = 0
             });
         }
@@ -134,10 +143,15 @@ namespace SchoolPortal.API.Controllers
         public async Task<ActionResult<ClassDto>> AddSection(AddSectionDto dto)
         {
             var section = dto.Section.Trim();
+            var code = dto.ClassCode.Trim();
 
             var validLabel = await _context.SectionOptions.AnyAsync(s => s.Name == section);
             if (!validLabel)
                 return BadRequest($"'{section}' isn't in the section list. Add it there first.");
+
+            var codeTaken = await _context.Classes.AnyAsync(c => c.ClassCode == code);
+            if (codeTaken)
+                return Conflict($"Roll number code '{code}' is already used by another class/section. Each needs its own code.");
 
             var siblingRows = await _context.Classes
                 .Where(c => c.ClassName == dto.ClassName && c.AcademicYear == dto.AcademicYear)
@@ -189,7 +203,8 @@ namespace SchoolPortal.API.Controllers
                 ClassName = dto.ClassName,
                 Section = section,
                 AcademicYear = dto.AcademicYear,
-                PromotionOrder = promotionOrder
+                PromotionOrder = promotionOrder,
+                ClassCode = code
             };
 
             _context.Classes.Add(newSection);
@@ -211,7 +226,40 @@ namespace SchoolPortal.API.Controllers
                 Section = newSection.Section,
                 AcademicYear = newSection.AcademicYear,
                 PromotionOrder = newSection.PromotionOrder,
+                ClassCode = newSection.ClassCode,
                 StudentCount = 0
+            });
+        }
+
+        // The class code can also be set or corrected after the fact —
+        // e.g. for classes that existed before this feature and still have
+        // a blank code. Kept as its own endpoint (like SetRollNumber on
+        // students) rather than folded into a general class edit, since no
+        // general "edit class" endpoint exists yet.
+        [HttpPut("{id}/code")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ClassDto>> UpdateClassCode(int id, UpdateClassCodeDto dto)
+        {
+            var cls = await _context.Classes.FindAsync(id);
+            if (cls == null) return NotFound();
+
+            var code = dto.ClassCode.Trim();
+            var codeTaken = await _context.Classes.AnyAsync(c => c.ClassCode == code && c.ClassId != id);
+            if (codeTaken)
+                return Conflict($"Roll number code '{code}' is already used by another class/section. Each needs its own code.");
+
+            cls.ClassCode = code;
+            await _context.SaveChangesAsync();
+
+            return Ok(new ClassDto
+            {
+                ClassId = cls.ClassId,
+                ClassName = cls.ClassName,
+                Section = cls.Section,
+                AcademicYear = cls.AcademicYear,
+                PromotionOrder = cls.PromotionOrder,
+                ClassCode = cls.ClassCode,
+                StudentCount = await _context.Students.CountAsync(s => s.ClassId == cls.ClassId && s.AdmissionStatus == AdmissionStatus.Admitted)
             });
         }
 
@@ -260,6 +308,7 @@ namespace SchoolPortal.API.Controllers
                 // than silently carried over into the new section — the
                 // Admin can assign a fresh one afterward if they want.
                 student.RollNumber = null;
+                student.RollNumberSequence = null;
             }
 
             await _context.SaveChangesAsync();

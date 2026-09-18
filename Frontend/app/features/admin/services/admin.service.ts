@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import { AppRole, AuditLogDto, AuditLogFilter, UserSummaryDto, PromoteClassesDto, PromotionResultDto } from '../models/admin.models';
+import { AppRole, AuditLogDto, AuditLogFilter, UserSummaryDto, PromoteClassesDto, PromotionResultDto, RollNumberSettingsDto } from '../models/admin.models';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
@@ -31,5 +31,15 @@ export class AdminService {
   // Promotion
   promoteYear(dto: PromoteClassesDto) {
     return this.http.post<PromotionResultDto>(`${this.baseUrl}/promotion/promote-year`, dto);
+  }
+
+  // Roll Number Settings — the globally-editable prefix/padding; each
+  // class's own code lives on the class row (see ClassesService).
+  getRollNumberSettings() {
+    return this.http.get<RollNumberSettingsDto>(`${this.baseUrl}/settings/roll-number`);
+  }
+
+  updateRollNumberSettings(dto: RollNumberSettingsDto) {
+    return this.http.put<RollNumberSettingsDto>(`${this.baseUrl}/settings/roll-number`, dto);
   }
 }

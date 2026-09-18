@@ -14,7 +14,15 @@ namespace SchoolPortal.API.Models
     {
         public int StudentId { get; set; }
         public string Name { get; set; } = string.Empty;
-        public int? RollNumber { get; set; } // unique school-wide; null means not yet assigned
+        // Formatted code, e.g. "F24PGA001" — {Prefix}{2-digit admission
+        // year}{ClassCode}{padded sequence}. Null means not yet assigned.
+        public string? RollNumber { get; set; }
+
+        // The raw position within this student's own class/section that the
+        // formatted code above was built from. This is what "shift by one"
+        // reordering actually operates on — not the formatted string, which
+        // has no numeric meaning on its own. Null whenever RollNumber is null.
+        public int? RollNumberSequence { get; set; }
         public string? PhotoFileName { get; set; } // stored on disk, see StudentPhotoService; null means no photo set
         public string BFormNumber { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }

@@ -109,8 +109,9 @@
       </label>
 
       @if (!isEditMode()) {
-        <label>Roll Number
-          <input type="number" formControlName="rollNumber" placeholder="Leave blank to auto-assign" class="text-input" min="1" />
+        <label>Roll Number Position
+          <input type="number" formControlName="rollNumberSequence" placeholder="Leave blank to auto-assign" class="text-input" min="1" />
+          <span class="hint-text">Position within this student's class/section — the full roll number code is generated from it, the class's code, and the admission date.</span>
         </label>
       } @else {
         <div class="roll-number-block">
@@ -125,7 +126,7 @@
 
           <div class="roll-number-edit">
             <input type="number" [ngModel]="newRollNumberInput()" (ngModelChange)="newRollNumberInput.set($event)"
-                   [ngModelOptions]="{standalone: true}" placeholder="New roll number" class="text-input" min="1" />
+                   [ngModelOptions]="{standalone: true}" placeholder="New position in class" class="text-input" min="1" />
             <button type="button" class="btn-secondary" (click)="saveRollNumber()" [disabled]="rollNumberSaving()">
               {{ rollNumberSaving() ? 'Saving…' : 'Set' }}
             </button>

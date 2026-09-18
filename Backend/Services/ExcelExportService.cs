@@ -116,7 +116,7 @@ namespace SchoolPortal.API.Services
             var row = 4;
             foreach (var student in register.Students)
             {
-                ws.Cell(row, 1).Value = student.RollNumber?.ToString() ?? "";
+                ws.Cell(row, 1).Value = student.RollNumber ?? "";
                 ws.Cell(row, 2).Value = student.StudentName;
 
                 foreach (var day in student.Days)

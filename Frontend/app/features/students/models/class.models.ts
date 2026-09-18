@@ -5,6 +5,7 @@ export interface ClassDto {
   academicYear: string;
   promotionOrder: number;
   studentCount: number;
+  classCode: string;
 }
 
 export interface ClassGroupDto {
@@ -17,12 +18,18 @@ export interface ClassGroupDto {
 export interface CreateClassDto {
   className: string;
   academicYear: string;
+  classCode: string;
 }
 
 export interface AddSectionDto {
   className: string;
   academicYear: string;
   section: string;
+  classCode: string;
+}
+
+export interface UpdateClassCodeDto {
+  classCode: string;
 }
 
 export interface SectionOptionDto {
