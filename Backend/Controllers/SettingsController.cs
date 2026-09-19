@@ -101,11 +101,12 @@ namespace SchoolPortal.API.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Changing these does not retroactively reformat already-issued
-            // roll numbers — same as changing ChallanSettings doesn't
-            // reprint old challans. Existing students keep their current
-            // codes; only newly generated/regenerated ones use the new
-            // prefix/padding.
+            // Unlike ChallanSettings, roll numbers are live identifiers
+            // printed everywhere, so a mix of old and new prefixes/padding
+            // is never wanted. Every existing roll number is rebuilt with
+            // the new prefix/padding; each student keeps their position.
+            await SchoolPortal.API.Services.RollNumberRebuilder.RebuildAsync(_context);
+
             return Ok(new RollNumberSettingsDto { Prefix = settings.Prefix, SequenceDigits = settings.SequenceDigits });
         }
     }

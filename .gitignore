@@ -25,10 +25,17 @@ yarn-error.log*
 *.db-shm
 *.db-wal
 Backend/SchoolPortal.db
+Backend/StudentPhotos/
+**/StudentPhotos/
+Backups/
+**/Backups/
+*.sqbpro
 
 ## ---- Secrets (this app is single-machine/offline; keep local overrides out) ----
 Backend/appsettings.Local.json
 Backend/appsettings.*.local.json
+jwt.key
+**/jwt.key
 
 ## ---- OS noise ----
 .DS_Store

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -8,64 +8,56 @@ namespace SchoolPortal.API.Migrations
     /// <inheritdoc />
     public partial class AddClassManagement : Migration
     {
+        // Every statement here is written as "IF NOT EXISTS" on purpose.
+        //
+        // Older builds of the app created the LicenseInfos table themselves
+        // with raw SQL at startup (before this migration existed). A school
+        // database installed from one of those builds therefore already has
+        // LicenseInfos, but no record of this migration in
+        // __EFMigrationsHistory. A plain CreateTable then fails on upgrade
+        // with: SQLite Error 1: 'table "LicenseInfos" already exists'.
+        //
+        // Using IF NOT EXISTS makes this migration safe on all three cases:
+        // a brand-new database, an already-migrated one (Up never re-runs),
+        // and an older database that already has some of these objects.
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "LicenseInfos",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    TrialStartDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    TrialEndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    IsActivated = table.Column<bool>(type: "INTEGER", nullable: false),
-                    LicenseKey = table.Column<string>(type: "TEXT", nullable: true),
-                    LicenseStartDate = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LicenseEndDate = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LastSeenDate = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    InstallationId = table.Column<string>(type: "TEXT", nullable: false),
-                    SignedLicense = table.Column<string>(type: "TEXT", nullable: true),
-                    LastOnlineValidationUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    OfflineGraceUntilUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_LicenseInfos", x => x.Id);
-                });
+            migrationBuilder.Sql(@"
+CREATE TABLE IF NOT EXISTS ""LicenseInfos"" (
+    ""Id"" INTEGER NOT NULL CONSTRAINT ""PK_LicenseInfos"" PRIMARY KEY AUTOINCREMENT,
+    ""TrialStartDate"" TEXT NOT NULL,
+    ""TrialEndDate"" TEXT NOT NULL,
+    ""IsActivated"" INTEGER NOT NULL,
+    ""LicenseKey"" TEXT NULL,
+    ""LicenseStartDate"" TEXT NULL,
+    ""LicenseEndDate"" TEXT NULL,
+    ""LastSeenDate"" TEXT NULL,
+    ""InstallationId"" TEXT NOT NULL,
+    ""SignedLicense"" TEXT NULL,
+    ""LastOnlineValidationUtc"" TEXT NULL,
+    ""OfflineGraceUntilUtc"" TEXT NULL,
+    ""CreatedAt"" TEXT NOT NULL,
+    ""UpdatedAt"" TEXT NOT NULL
+);");
 
-            migrationBuilder.CreateTable(
-                name: "SectionOptions",
-                columns: table => new
-                {
-                    SectionOptionId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SectionOptions", x => x.SectionOptionId);
-                });
+            migrationBuilder.Sql(@"
+CREATE TABLE IF NOT EXISTS ""SectionOptions"" (
+    ""SectionOptionId"" INTEGER NOT NULL CONSTRAINT ""PK_SectionOptions"" PRIMARY KEY AUTOINCREMENT,
+    ""Name"" TEXT NOT NULL
+);");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Classes_ClassName_Section_AcademicYear",
-                table: "Classes",
-                columns: new[] { "ClassName", "Section", "AcademicYear" },
-                unique: true);
+            migrationBuilder.Sql(
+                "CREATE UNIQUE INDEX IF NOT EXISTS \"IX_Classes_ClassName_Section_AcademicYear\" " +
+                "ON \"Classes\" (\"ClassName\", \"Section\", \"AcademicYear\");");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_LicenseInfos_InstallationId",
-                table: "LicenseInfos",
-                column: "InstallationId",
-                unique: true);
+            migrationBuilder.Sql(
+                "CREATE UNIQUE INDEX IF NOT EXISTS \"IX_LicenseInfos_InstallationId\" " +
+                "ON \"LicenseInfos\" (\"InstallationId\");");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_SectionOptions_Name",
-                table: "SectionOptions",
-                column: "Name",
-                unique: true);
+            migrationBuilder.Sql(
+                "CREATE UNIQUE INDEX IF NOT EXISTS \"IX_SectionOptions_Name\" " +
+                "ON \"SectionOptions\" (\"Name\");");
         }
 
         /// <inheritdoc />

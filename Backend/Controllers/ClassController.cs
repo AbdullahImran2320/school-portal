@@ -251,6 +251,11 @@ namespace SchoolPortal.API.Controllers
             cls.ClassCode = code;
             await _context.SaveChangesAsync();
 
+            // Students in this class who already have a roll number keep
+            // their position but get the new code in the text right away,
+            // instead of silently keeping the old code.
+            await SchoolPortal.API.Services.RollNumberRebuilder.RebuildAsync(_context, cls.ClassId);
+
             return Ok(new ClassDto
             {
                 ClassId = cls.ClassId,

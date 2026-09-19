@@ -9,6 +9,8 @@ using SchoolPortal.API.Repositories;
 using SchoolPortal.API.Services;
 using System.Text;
 using System.Diagnostics;
+using System.Security.Cryptography;
+using Microsoft.Data.Sqlite;
 
 
 
@@ -20,6 +22,38 @@ var builder = WebApplication.CreateBuilder(args);
 if (!builder.Environment.IsDevelopment())
 {
     builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.None);
+}
+
+// ---- JWT signing key -------------------------------------------------------
+// appsettings.json ships with a public placeholder key. If it were ever used
+// for real, anyone who read the repository could forge an Admin login token.
+// So when the configured key is missing, too short, or still the placeholder,
+// a random per-installation key is generated once and stored in "jwt.key"
+// next to the live database (%ProgramData%\<App>\ once installed), then
+// reused on every later start. Setting a real Jwt:Key in configuration still
+// takes priority.
+{
+    var configuredKey = builder.Configuration["Jwt:Key"];
+    var keyIsUsable = !string.IsNullOrWhiteSpace(configuredKey)
+        && !configuredKey.StartsWith("REPLACE_WITH_YOUR_OWN_SECRET", StringComparison.Ordinal)
+        && Encoding.UTF8.GetByteCount(configuredKey) >= 32;
+
+    if (!keyIsUsable)
+    {
+        var dataSource = new SqliteConnectionStringBuilder(
+            builder.Configuration.GetConnectionString("DefaultConnection")).DataSource;
+        var keyFolder = Path.GetDirectoryName(Path.GetFullPath(dataSource)) ?? AppContext.BaseDirectory;
+        Directory.CreateDirectory(keyFolder);
+        var keyPath = Path.Combine(keyFolder, "jwt.key");
+
+        string generatedKey = File.Exists(keyPath) ? File.ReadAllText(keyPath).Trim() : string.Empty;
+        if (Encoding.UTF8.GetByteCount(generatedKey) < 32)
+        {
+            generatedKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
+            File.WriteAllText(keyPath, generatedKey);
+        }
+        builder.Configuration["Jwt:Key"] = generatedKey;
+    }
 }
 
 builder.Services.AddHttpContextAccessor();
@@ -280,17 +314,18 @@ using (var scope = app.Services.CreateScope())
 
     if (!db.ChallanSettings.Any())
     {
-        // Seeded from the school's existing paper challan — verify the exact
-        // wording and account number against a current printed copy and
-        // correct via Admin -> Challan Settings if anything's slightly off;
-        // this is only a starting point.
+        // Deliberately generic placeholders. Real bank details must never be
+        // committed to the source repository — each school enters its own
+        // account title, bank, account number and payment terms once via
+        // Admin -> Challan Settings. Existing installs already have their
+        // row and are unaffected by this.
         db.ChallanSettings.Add(new ChallanSettings
         {
-            AccountTitle = "Bright Grammar School",
-            BankName = "Bank Al Habib",
-            AccountNumber = "[REMOVED]",
-            PaymentTermsLine1 = "A fine of Rs. 200 per day will be charged after the due date.",
-            PaymentTermsLine2 = "Students whose dues are not paid by the 25th of the month will have their name struck off from the school."
+            AccountTitle = "Set in Admin > Challan Settings",
+            BankName = "Set in Admin > Challan Settings",
+            AccountNumber = "Set in Admin > Challan Settings",
+            PaymentTermsLine1 = "Set in Admin > Challan Settings",
+            PaymentTermsLine2 = "Set in Admin > Challan Settings"
         });
         db.SaveChanges();
     }
@@ -343,7 +378,9 @@ using (var scope = app.Services.CreateScope())
     }
 
 
-    if (!db.Parents.Any())
+    // Sample parent for local development only. A production install must not
+    // start with a fake family in the school's real records.
+    if (app.Environment.IsDevelopment() && !db.Parents.Any())
     {
         db.Parents.Add(new Parent
         {

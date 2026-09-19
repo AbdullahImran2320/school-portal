@@ -486,8 +486,25 @@ namespace SchoolPortal.API.Controllers
         {
             try
             {
+                var photoFileName = await _context.Students
+                    .AsNoTracking()
+                    .Where(s => s.StudentId == id)
+                    .Select(s => s.PhotoFileName)
+                    .FirstOrDefaultAsync();
+
                 var deleted = await _studentService.DeleteStudentAsync(id);
                 if (!deleted) return NotFound();
+
+                // Don't leave a deleted student's photo behind on disk.
+                if (!string.IsNullOrEmpty(photoFileName))
+                {
+                    try
+                    {
+                        var photoPath = Path.Combine(GetPhotoFolder(), photoFileName);
+                        if (System.IO.File.Exists(photoPath)) System.IO.File.Delete(photoPath);
+                    }
+                    catch { /* orphaned file is harmless clutter, not worth failing the delete */ }
+                }
                 return NoContent();
             }
             catch (DbUpdateException)

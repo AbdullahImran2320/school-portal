@@ -71,13 +71,17 @@ export class StudentListComponent implements OnInit {
       next: (result) => {
         this.assigningRollNumbers.set(false);
         const parts: string[] = [];
-        parts.push(
-          result.assignedCount > 0
-            ? `Assigned roll numbers to ${result.assignedCount} student(s).`
-            : 'Everyone already has a roll number.'
-        );
+        if (result.assignedCount > 0) {
+          parts.push(`Assigned roll numbers to ${result.assignedCount} student(s).`);
+        } else if (result.skippedNoClassCodeCount === 0) {
+          // Only claim "everyone has one" when nobody was skipped either —
+          // otherwise students are still missing a roll number.
+          parts.push('Everyone already has a roll number.');
+        } else {
+          parts.push('No roll numbers were assigned.');
+        }
         if (result.skippedNoClassCodeCount > 0) {
-          parts.push(`${result.skippedNoClassCodeCount} student(s) skipped — their class has no roll number code set yet.`);
+          parts.push(`${result.skippedNoClassCodeCount} student(s) skipped — their class has no roll number code set yet. Set one in Admin > Classes, then try again.`);
         }
         this.assignRollNumbersMessage.set(parts.join(' '));
         this.loadStudents(); // refresh so the new numbers show in the table immediately

@@ -120,6 +120,13 @@ namespace SchoolPortal.API.Services
                     }
 
                     student.ClassId = targetClass.ClassId;
+                    // A roll number belongs to the class register it was
+                    // built for (class code + position in that class), so
+                    // it must not follow the student into the next class.
+                    // Cleared here; new ones are issued with "Assign Roll
+                    // Numbers" on the Students screen.
+                    student.RollNumber = null;
+                    student.RollNumberSequence = null;
                     await _feeEngineService.GenerateFeeRecordsForStudentAsync(student.StudentId, targetClass.ClassId, dto.ToAcademicYear);
                     result.PromotedCount++;
                 }
