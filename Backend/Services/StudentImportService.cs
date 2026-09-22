@@ -234,15 +234,17 @@ namespace SchoolPortal.API.Services
 
                     var created = await _studentService.CreateStudentAsync(dto);
 
+                    // Goes through SetDiscountAsync (applyToRemainingMonths: true)
+                    // rather than patching Student.MonthlyDiscountAmount directly.
+                    // CreateStudentAsync already generated this student's FeeLedger
+                    // rows with a 0 discount (CreateStudentDto has no discount field),
+                    // so writing the discount onto the Student row alone would leave
+                    // every already-created monthly ledger — and therefore every
+                    // challan/voucher — showing the full undiscounted amount due.
+                    // SetDiscountAsync is what actually back-fills the ledgers too.
                     if (discountAmount > 0)
                     {
-                        var studentEntity = await _context.Students.FindAsync(created.StudentId);
-                        if (studentEntity != null)
-                        {
-                            studentEntity.MonthlyDiscountAmount = discountAmount;
-                            studentEntity.DiscountReason = discountReason;
-                            await _context.SaveChangesAsync();
-                        }
+                        await _studentService.SetDiscountAsync(created.StudentId, discountAmount, discountReason, applyToRemainingMonths: true);
                     }
 
                     existingBFormNumbers.Add(bForm);
