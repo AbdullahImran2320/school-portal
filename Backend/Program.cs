@@ -58,7 +58,8 @@ if (!builder.Environment.IsDevelopment())
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<SchoolPortalDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+           .AddInterceptors(new SqlitePragmaInterceptor()));
 
 
 
@@ -125,10 +126,6 @@ builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 
 builder.Services.AddScoped<ILicenseService, LicenseService>();
 builder.Services.AddScoped<IBackupService, BackupService>();
-builder.Services.AddHttpClient("LicenseServer", client =>
-{
-    client.Timeout = TimeSpan.FromSeconds(10);
-});
 
 var app = builder.Build();
 
@@ -441,7 +438,7 @@ app.Use(async (context, next) =>
             await context.Response.WriteAsJsonAsync(new
             {
                 code = "LICENSE_EXPIRED",
-                message = "The Bright Grammar School Portal license has expired. Please renew or activate a valid license."
+                message = "The Bay Heights School Portal license has expired. Please renew or activate a valid license."
             });
             return;
         }
