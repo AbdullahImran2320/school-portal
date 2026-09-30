@@ -24,6 +24,82 @@ if (!builder.Environment.IsDevelopment())
     builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.None);
 }
 
+// ---- Database location -----------------------------------------------------
+// The installed app lives in C:\Program Files, which normal users cannot write
+// to, so the database must live in %ProgramData%\BrightGrammarSchoolPortal\.
+// - In production, or whenever the exe runs from Program Files (even if
+//   ASPNETCORE_ENVIRONMENT=Development is set on the machine), any relative
+//   database path is moved into %ProgramData%. An absolute path (already
+//   patched by the installer) is left untouched.
+// - Before EF touches the file, we verify it is really writable (clears the
+//   read-only attribute, checks folder + file access) and, if not, print the
+//   exact path and a fix instead of a cryptic SQLite stack trace.
+// This must run before the JWT key block below, which stores jwt.key next to
+// the database.
+{
+    var configuredConnection =
+        builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? "Data Source=SchoolPortal.db";
+
+    var connectionBuilder = new SqliteConnectionStringBuilder(configuredConnection);
+
+    var baseDir = AppContext.BaseDirectory;
+    var runningFromProgramFiles =
+        baseDir.StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), StringComparison.OrdinalIgnoreCase)
+        || baseDir.StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), StringComparison.OrdinalIgnoreCase);
+
+    if ((!builder.Environment.IsDevelopment() || runningFromProgramFiles)
+        && !Path.IsPathRooted(connectionBuilder.DataSource))
+    {
+        var dataFolder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            "BrightGrammarSchoolPortal");
+        Directory.CreateDirectory(dataFolder);
+
+        connectionBuilder.DataSource = Path.Combine(
+            dataFolder, Path.GetFileName(connectionBuilder.DataSource));
+        builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionBuilder.ToString();
+    }
+
+    // ---- Writability check (fail early with a clear message) ----
+    var dbFullPath = Path.GetFullPath(connectionBuilder.DataSource);
+    var dbFolder = Path.GetDirectoryName(dbFullPath)!;
+    Console.WriteLine($"Database: {dbFullPath}");
+    try
+    {
+        Directory.CreateDirectory(dbFolder);
+
+        // SQLite (WAL mode) must be able to create -wal / -shm files in the folder.
+        var probe = Path.Combine(dbFolder, ".write-test-" + Guid.NewGuid().ToString("N"));
+        File.WriteAllText(probe, "x");
+        File.Delete(probe);
+
+        if (File.Exists(dbFullPath))
+        {
+            var attrs = File.GetAttributes(dbFullPath);
+            if ((attrs & FileAttributes.ReadOnly) != 0)
+                File.SetAttributes(dbFullPath, attrs & ~FileAttributes.ReadOnly);
+
+            using var fs = new FileStream(dbFullPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine();
+        Console.Error.WriteLine("ERROR: Bright Grammar School Portal cannot write to its database.");
+        Console.Error.WriteLine($"  Database file : {dbFullPath}");
+        Console.Error.WriteLine($"  Reason        : {ex.Message}");
+        Console.Error.WriteLine();
+        Console.Error.WriteLine("Fix: run this in an Administrator Command Prompt, then start the app again:");
+        Console.Error.WriteLine($"  icacls \"{dbFolder}\" /grant *S-1-5-32-545:(OI)(CI)M /T");
+        Console.Error.WriteLine($"  attrib -R \"{dbFolder}\\*\" /S");
+        Console.Error.WriteLine();
+        Console.Error.WriteLine("Press any key to close...");
+        try { Console.ReadKey(true); } catch { }
+        Environment.Exit(1);
+    }
+}
+
 // ---- JWT signing key -------------------------------------------------------
 // appsettings.json ships with a public placeholder key. If it were ever used
 // for real, anyone who read the repository could forge an Admin login token.
@@ -124,6 +200,9 @@ builder.Services.AddScoped<IPromotionService, PromotionService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 
 
+// LicenseService takes IHttpClientFactory (to reach the license server), so the
+// HTTP client factory must be registered or the app crashes at startup.
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<ILicenseService, LicenseService>();
 builder.Services.AddScoped<IBackupService, BackupService>();
 
@@ -438,7 +517,7 @@ app.Use(async (context, next) =>
             await context.Response.WriteAsJsonAsync(new
             {
                 code = "LICENSE_EXPIRED",
-                message = "The Bay Heights School Portal license has expired. Please renew or activate a valid license."
+                message = "The Bright Grammar School Portal license has expired. Please renew or activate a valid license."
             });
             return;
         }

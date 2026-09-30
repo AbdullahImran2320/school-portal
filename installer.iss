@@ -1,6 +1,6 @@
 ; Bright Grammar School Portal - separate application installer
 #define MyAppName "Bright Grammar School Portal"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.1"
 #define MyAppPublisher "Rana Abdullah"
 #define MyAppExeName "BrightGrammarSchoolPortal.exe"
 #define MyAppPort "5000"
@@ -39,7 +39,9 @@ Name: "{autodesktop}\Bright Grammar School Portal"; Filename: "{sys}\wscript.exe
 
 [Run]
 Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""Bright Grammar School Portal"" dir=in action=allow protocol=TCP localport={#MyAppPort}"; Flags: runhidden
-Filename: "{sys}\wscript.exe"; Parameters: """{app}\LaunchBrightGrammarSchoolPortal.vbs"""; Description: "Launch Bright Grammar School Portal"; Flags: postinstall nowait skipifsilent
+Filename: "{sys}\icacls.exe"; Parameters: """{commonappdata}\BrightGrammarSchoolPortal"" /grant *S-1-5-32-545:(OI)(CI)M /T /C /Q"; Flags: runhidden
+Filename: "{sys}\attrib.exe"; Parameters: "-R ""{commonappdata}\BrightGrammarSchoolPortal\*"" /S"; Flags: runhidden
+Filename: "{sys}\wscript.exe"; Parameters: """{app}\LaunchBrightGrammarSchoolPortal.vbs"""; Description: "Launch Bright Grammar School Portal"; Flags: postinstall nowait runasoriginaluser skipifsilent
 
 [UninstallRun]
 Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM {#MyAppExeName}"; Flags: runhidden; RunOnceId: "KillApp"
